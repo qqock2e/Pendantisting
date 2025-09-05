@@ -61,7 +61,12 @@
             animation: rainbow 3s ease infinite;
             color: white;
         }
-        
+        .grade-special {
+            background: linear-gradient(45deg, #ff6b6b 0%, #fab005 16.66%, #fa5005 33.33%, #0abde3 50%, #ff9ff3 66.66%, #54a0ff 83.33%, #5f27cd 100%);
+            background-size: 400% 400%;
+            animation: rainbow 3s ease infinite;
+            color: white;
+        }
         @keyframes rainbow {
             0% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
@@ -526,7 +531,12 @@
             12: { name: '토파즈', emoji: '🧡', chorus: 12, multiple: 1.6, lux: 1.0, description: '따뜻한 주황빛의 보석입니다.' },
             13: { name: '별의 조각', emoji: '⭐', chorus: 15, multiple: 2.0, lux: 2.5, description: '하늘에서 떨어진 별의 조각입니다.' },
             14: { name: '달의 눈물', emoji: '🌙', chorus: 20, multiple: 2.5, lux: 4.0, description: '달빛이 응축된 신비한 보석입니다.' },
-            15: { name: '태양의 심장', emoji: '☀️', chorus: 25, multiple: 3.0, lux: 5.0, description: '태양의 힘이 담긴 전설의 보석입니다.' }
+            15: { name: '태양의 심장', emoji: '☀️', chorus: 25, multiple: 3.0, lux: 5.0, description: '태양의 힘이 담긴 전설의 보석입니다.' },
+            16: { name: '카르마 벨', emoji: '☯', chorus: 34, multiple: 3.4, lux: 6.0, description: '수백년전 떨어진 혜성에서 떨어진 파편입니다. 어쩐지 털이..날리는것 같네요?' },
+            17: { name: '파시티션트', emoji: '🔮', chorus: 36, multiple: 4.0, lux: 10.0, description: '태평양 어느 심해에서 발견된 빛이나는 보석입니다.' },
+            18: { name: '폴리 아이드', emoji: '🧿', chorus: 30, multiple: 4.1, lux: 8.3, description: '푸른빛의 눈처럼 생긴 보석입니다.' },
+            19: { name: '팔라틱 조커', emoji: '🃏', chorus: 17, multiple: 7.7, lux: 7.7, description: '<다이스 룸> 카지노에서 만든 인조 보석입니다. VIP에게 행운을 기원하는 의미로 주어집니다.' },
+            20: { name: '다이스톤', emoji: '🎲', chorus: 6, multiple: 1.6, description: '<다이스 룸> 외벽을 이루는 대리석과 비슷한 재질의 광석입니다.' }
         };
 
         // 보석 등급 확인 함수
@@ -1075,9 +1085,10 @@
         const gemRewards = {
             '일반': [1, 2, 3],
             '희귀': [4, 5, 6], 
-            '에픽': [7, 8, 9],
+            '에픽': [7, 8, 9, 20],
             '전설': [10, 11, 12],
-            '유니크': [13, 14, 15]
+            '유니크': [13, 14, 15, 16]
+            '스페셜' : [17, 18, 19]
         };
 
         // 10회 뽑기 실행
@@ -1119,7 +1130,8 @@
                         { name: '희귀', class: 'grade-rare', probability: 0.2 },
                         { name: '에픽', class: 'grade-epic', probability: 0.08 },
                         { name: '전설', class: 'grade-legendary', probability: 0.015 },
-                        { name: '유니크', class: 'grade-unique', probability: 0.005 }
+                        { name: '유니크', class: 'grade-unique', probability: 0.005 },
+                        { name: '스페셜', class: 'grade-special', probability: 0.00 }
                     ];
                     break;
                 case 'normal':
@@ -1128,25 +1140,28 @@
                         { name: '희귀', class: 'grade-rare', probability: 0.25 },
                         { name: '에픽', class: 'grade-epic', probability: 0.15 },
                         { name: '전설', class: 'grade-legendary', probability: 0.07 },
-                        { name: '유니크', class: 'grade-unique', probability: 0.03 }
+                        { name: '유니크', class: 'grade-unique', probability: 0.03 },
+                        { name: '스페셜', class: 'grade-special', probability: 0.00 }
                     ];
                     break;
                 case 'premium':
                     grades = [
                         { name: '일반', class: 'grade-common', probability: 0.3 },
                         { name: '희귀', class: 'grade-rare', probability: 0.3 },
-                        { name: '에픽', class: 'grade-epic', probability: 0.25 },
-                        { name: '전설', class: 'grade-legendary', probability: 0.1 },
-                        { name: '유니크', class: 'grade-unique', probability: 0.05 }
+                        { name: '에픽', class: 'grade-epic', probability: 0.22 },
+                        { name: '전설', class: 'grade-legendary', probability: 0.12, },
+                        { name: '유니크', class: 'grade-unique', probability: 0.05 },
+                        { name: '스페셜', class: 'grade-special', probability: 0.01 }
                     ];
                     break;
                 case 'luxury':
                     grades = [
                         { name: '일반', class: 'grade-common', probability: 0.3 },
                         { name: '희귀', class: 'grade-rare', probability: 0.3 },
-                        { name: '에픽', class: 'grade-epic', probability: 0.25 },
+                        { name: '에픽', class: 'grade-epic', probability: 0.22 },
                         { name: '전설', class: 'grade-legendary', probability: 0.1 },
-                        { name: '유니크', class: 'grade-unique', probability: 0.05 }
+                        { name: '유니크', class: 'grade-unique', probability: 0.05 },
+                        { name: '스페셜', class: 'grade-special', probability: 0.01 }
                     ];
                     break;
                 default:
@@ -1155,7 +1170,8 @@
                         { name: '희귀', class: 'grade-rare', probability: 0.25 },
                         { name: '에픽', class: 'grade-epic', probability: 0.15 },
                         { name: '전설', class: 'grade-legendary', probability: 0.07 },
-                        { name: '유니크', class: 'grade-unique', probability: 0.03 }
+                        { name: '유니크', class: 'grade-unique', probability: 0.03 },
+                        { name: '스페셜', class: 'grade-special', probability: 0.00 }
                     ];
             }
 
@@ -1472,6 +1488,7 @@
                     case '에픽': prismReward = 8; break;
                     case '전설': prismReward = 20; break;
                     case '유니크': prismReward = 60; break;
+                    case '스페셜': prismReward = 100; break;
                     default: prismReward = 1; break;
                 }
                 
@@ -1598,3 +1615,4 @@
     </script>
 <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97a5f5ad930caa4a',t:'MTc1NzA3Nzc1Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
+
