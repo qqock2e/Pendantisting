@@ -866,33 +866,56 @@
         }
 
         // 인벤토리 화면 업데이트
-        function updateInventoryDisplay() {
-            const gemList = document.getElementById('gemList');
-            gemList.innerHTML = '';
+        // 인벤토리 화면 업데이트
+function updateInventoryDisplay() {
+    const gemList = document.getElementById('gemList');
+    gemList.innerHTML = '';
 
-            Object.keys(inventory).forEach(gemId => {
-                const gem = gemData[gemId];
-                const count = inventory[gemId];
-                const isEquipped = equippedGems.includes(parseInt(gemId));
-                const gemElement = document.createElement('div');
-                gemElement.className = `bg-white bg-opacity-10 hover:bg-opacity-20 rounded-lg p-3 cursor-pointer transition-all duration-300 text-center relative ${isEquipped ? 'ring-2 ring-yellow-400' : ''}`;
-                gemElement.innerHTML = `
-                    <div class="text-2xl mb-1">${gem.emoji}</div>
-                    <div class="text-xs text-white">${gem.name}</div>
-                    <div class="absolute top-1 right-1 bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">${count}</div>
-                    ${isEquipped ? '<div class="text-xs text-yellow-400 mt-1">장착됨</div>' : ''}
-                `;
-                gemElement.addEventListener('click', () => showGemDetails(gemId));
-                gemList.appendChild(gemElement);
-            });
+    // 등급 순서 정의
+    const gradeOrder = ['일반', '희귀', '에픽', '전설', '유니크', '스페셜'];
 
-            if (Object.keys(inventory).length === 0) {
-                gemList.innerHTML = '<div class="col-span-full text-center text-gray-400 py-8">보석이 없습니다</div>';
-            }
+    // 보석 ID 정렬 (등급 > 이름 순)
+    const sortedGemIds = Object.keys(inventory).sort((a, b) => {
+        const gradeA = getGemGrade(a);
+        const gradeB = getGemGrade(b);
 
-            // 장착 슬롯 업데이트
-            updateEquipmentSlots();
+        const gradeIndexA = gradeOrder.indexOf(gradeA);
+        const gradeIndexB = gradeOrder.indexOf(gradeB);
+
+        // 등급 우선 비교
+        if (gradeIndexA !== gradeIndexB) {
+            return gradeIndexA - gradeIndexB;
         }
+
+        // 같은 등급이면 이름순
+        return gemData[a].name.localeCompare(gemData[b].name, 'ko');
+    });
+
+    // 정렬된 순서대로 표시
+    sortedGemIds.forEach(gemId => {
+        const gem = gemData[gemId];
+        const count = inventory[gemId];
+        const isEquipped = equippedGems.includes(parseInt(gemId));
+
+        const gemElement = document.createElement('div');
+        gemElement.className = `bg-white bg-opacity-10 hover:bg-opacity-20 rounded-lg p-3 cursor-pointer transition-all duration-300 text-center relative ${isEquipped ? 'ring-2 ring-yellow-400' : ''}`;
+        gemElement.innerHTML = `
+            <div class="text-2xl mb-1">${gem.emoji}</div>
+            <div class="text-xs text-white">${gem.name}</div>
+            <div class="absolute top-1 right-1 bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">${count}</div>
+            ${isEquipped ? '<div class="text-xs text-yellow-400 mt-1">장착됨</div>' : ''}
+        `;
+        gemElement.addEventListener('click', () => showGemDetails(gemId));
+        gemList.appendChild(gemElement);
+    });
+
+    if (sortedGemIds.length === 0) {
+        gemList.innerHTML = '<div class="col-span-full text-center text-gray-400 py-8">보석이 없습니다</div>';
+    }
+
+    // 장착 슬롯 업데이트
+    updateEquipmentSlots();
+}
 
         // 장착 슬롯 업데이트
         function updateEquipmentSlots() {
@@ -1615,6 +1638,7 @@
     </script>
 <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97a5f5ad930caa4a',t:'MTc1NzA3Nzc1Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
+
 
 
 
