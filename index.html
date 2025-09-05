@@ -319,18 +319,35 @@
                     </div>
                 </div>
                 
-                <!-- 광안의 원석 -->
+                <!-- 시즌 픽업 원석 -->
                 <div class="bg-white bg-opacity-5 rounded-xl p-4 flex justify-between items-center">
                     <div>
-                        <h3 class="text-lg font-bold text-white mb-1">💫 광안의 원석</h3>
-                        <p class="text-gray-300 text-sm">최고급 보석이 특별한 확률로 나오는 원석입니다</p>
-                        <p class="text-purple-300 font-medium">💎 40 프리즘 | 💎 400 프리즘 (10회)</p>
+                        <h3 class="text-lg font-bold text-white mb-1">💎 0 시즌 픽업 원석</h3>
+                        <p class="text-gray-300 text-sm">카지노 시즌 메인 보석인 에픽:다이스톤, 스페셜:???이 높은 확률로 나오는 원석입니다.</p>
+                        <p class="text-purple-300 font-medium">💎 50프리즘 | 💎 500프리즘 (10회)</p>
                     </div>
                     <div class="flex gap-2">
                         <button onclick="startGacha('luxury')" class="bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 px-4 py-2 rounded-full text-white font-bold transition-all duration-300">
                             1회 뽑기
                         </button>
                         <button onclick="startGacha('luxury', 10)" class="bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700 px-4 py-2 rounded-full text-white font-bold transition-all duration-300">
+                            10회 뽑기
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 포인트 원석 -->
+                <div class="bg-white bg-opacity-5 rounded-xl p-4 flex justify-between items-center">
+                    <div>
+                        <h3 class="text-lg font-bold text-white mb-1">💰 포인트 원석</h3>
+                        <p class="text-gray-300 text-sm">포인트를 사용하는 고급 원석입니다.</p>
+                        <p class="text-purple-300 font-medium">💰 100,000 포인트 | 💰 1,000,000 포인트 (10회)</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="startGacha('pointer')" class="bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 px-4 py-2 rounded-full text-white font-bold transition-all duration-300">
+                            1회 뽑기
+                        </button>
+                        <button onclick="startGacha('pointer', 10)" class="bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700 px-4 py-2 rounded-full text-white font-bold transition-all duration-300">
                             10회 뽑기
                         </button>
                     </div>
@@ -1037,9 +1054,14 @@ function updateInventoryDisplay() {
                     hasEnough = prisms >= cost;
                     break;
                 case 'luxury':
-                    cost = count === 10 ? 400 : 40;
+                    cost = count === 10 ? 500 : 50;
                     currency = 'prisms';
                     hasEnough = prisms >= cost;
+                    break;
+                case 'pointer':
+                    cost = count === 10 ? 100000 : 1000000;
+                    currency = 'points';
+                    hasEnough = points >= cost;
                     break;
             }
             
@@ -1187,6 +1209,16 @@ function updateInventoryDisplay() {
                         { name: '스페셜', class: 'grade-special', probability: 0.01 }
                     ];
                     break;
+                case 'pointer':
+                    grades = [
+                        { name: '일반', class: 'grade-common', probability: 0.3 },
+                        { name: '희귀', class: 'grade-rare', probability: 0.3 },
+                        { name: '에픽', class: 'grade-epic', probability: 0.22 },
+                        { name: '전설', class: 'grade-legendary', probability: 0.1 },
+                        { name: '유니크', class: 'grade-unique', probability: 0.05 },
+                        { name: '스페셜', class: 'grade-special', probability: 0.01 }
+                    ];
+                    break;
                 default:
                     grades = [
                         { name: '일반', class: 'grade-common', probability: 0.5 },
@@ -1217,17 +1249,17 @@ function updateInventoryDisplay() {
             
             // 광안의 원석 특별 확률 적용
             if (window.currentGachaType === 'luxury') {
-                if (selectedGrade.name === '전설') {
+                if (selectedGrade.name === '에픽') {
                     const random = Math.random();
                     if (random < 0.6) {
-                        selectedReward = 12; // 토파즈
+                        selectedReward = 20; // 다이스톤
                     } else {
                         selectedReward = possibleRewards[Math.floor(Math.random() * possibleRewards.length)];
                     }
-                } else if (selectedGrade.name === '유니크') {
+                } else if (selectedGrade.name === '스페셜') {
                     const random = Math.random();
                     if (random < 0.6) {
-                        selectedReward = 15; // 태양의 심장
+                        selectedReward = 19; // 팔라틱 조커
                     } else {
                         selectedReward = possibleRewards[Math.floor(Math.random() * possibleRewards.length)];
                     }
@@ -1638,6 +1670,7 @@ function updateInventoryDisplay() {
     </script>
 <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97a5f5ad930caa4a',t:'MTc1NzA3Nzc1Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
+
 
 
 
