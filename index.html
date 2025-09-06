@@ -1261,10 +1261,20 @@ function updateInventoryDisplay() {
                     currency = 'points';
                     hasEnough = points >= cost;
                     break;
+                case 'event':
+                    cost = count === 10 ? 500000 : 50000;
+                    currency = 'points';
+                    hasEnough = points >= cost;
+                    break;
             }
             
             if (hasEnough) {
-                if (currency === 'points') {
+                if (type === 'event') {
+                // 포인트 차감
+                points -= cost;
+                // 보석 1개 소모
+                inventory[23] -= 1;
+                } else if (currency === 'points') {
                     points -= cost;
                 } else {
                     prisms -= cost;
@@ -1285,8 +1295,12 @@ function updateInventoryDisplay() {
                 window.currentGachaCount = count;
                 startGachaAnimation();
             } else {
-                const currencyName = currency === 'points' ? '포인트' : '프리즘';
-                showMessage(`${currencyName}이 부족합니다! (${cost} ${currencyName} 필요)`, 'text-red-300');
+                if (type === 'event') {
+                    showMessage(`❌ 이벤트 뽑기에는 포인트 ${cost}와 보석(ID:23) 2개 이상이 필요합니다!`, 'text-red-300');
+                } else {
+                    const currencyName = currency === 'points' ? '포인트' : '프리즘';
+                    showMessage(`${currencyName}이 부족합니다! (${cost} ${currencyName} 필요)`, 'text-red-300');
+                }
             }
         }
 
@@ -1918,6 +1932,7 @@ document.getElementById("patchNoteModal").addEventListener("click", (e) => {
 
 </body>
 </html>
+
 
 
 
