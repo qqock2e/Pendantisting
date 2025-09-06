@@ -1275,7 +1275,7 @@ function updateInventoryDisplay() {
                     // 포인트 차감
                     points -= cost;
                     // 보석 1개 소모
-                    if (points === 500000) {
+                    if (cost === 500000) {
                         inventory[23] -= 10;    
                     } else {
                         inventory[23] -= 1;
@@ -1938,6 +1938,7 @@ document.getElementById("patchNoteModal").addEventListener("click", (e) => {
 
 </body>
 </html>
+
 
 
 
