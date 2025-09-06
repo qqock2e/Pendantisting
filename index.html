@@ -555,7 +555,7 @@
             19: { name: '팔라틱 조커', emoji: '🃏', chorus: 17, multiple: 7.7, lux: 7.7, description: '<다이스 룸> 카지노에서 만든 인조 보석입니다. VIP에게 행운을 기원하는 의미로 주어집니다.' },
             20: { name: '다이스톤', emoji: '🎲', chorus: 6, multiple: 1.6, description: '<다이스 룸> 외벽을 이루는 대리석과 비슷한 재질의 광석입니다.' },
             21: { name: '헬 크림슨', emoji: '📛', chorus: 44, multiple: 4.4, lux: 4.4, description: '지옥의 조개가 뱉은 진주입니다. 내부에 용암이 흐릅니다.'},
-            22: { name: '홀리틱 라피스', emoji: '🪽', chorus: , multiple: , lux: , description: '천국에서 쓰는 헤븐 블루 염료를 제작할때 쓰는 값비싼 보석입니다.'}
+            22: { name: '홀리틱 라피스', emoji: '🪽', chorus: 77 , multiple: 7.7 , lux: 7.7 , description: '천국에서 쓰는 헤븐 블루 염료를 제작할때 쓰는 값비싼 보석입니다.'}
         };
 
         // 보석 등급 확인 함수
@@ -1260,10 +1260,12 @@ function updateInventoryDisplay() {
                     }
                 } else if (selectedGrade.name === '스페셜') {
                     const random = Math.random();
-                    if (random < 0.6) {
+                    if (random < 0.3) {
                         selectedReward = 21; // 헬 크림슨
                     } 
-                    //else if (random )
+                    else if (random < 0.6 && random => 0.3) {
+                        selectedReward = 22; 
+                    }
                     else {
                         selectedReward = possibleRewards[Math.floor(Math.random() * possibleRewards.length)];
                     }
@@ -1674,6 +1676,7 @@ function updateInventoryDisplay() {
     </script>
 <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97a5f5ad930caa4a',t:'MTc1NzA3Nzc1Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
+
 
 
 
