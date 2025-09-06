@@ -1266,8 +1266,13 @@ function updateInventoryDisplay() {
                 case 'event':
                     cost = count === 10 ? 500000 : 50000;
                     currency = 'points';
-                    hasEnough = points >= cost && (inventory[23] || 0) >= 2;
-                    break;
+                    if (cost === 50000) {
+                        hasEnough = points >= cost && (inventory[23] || 0) >= 2;
+                        break;
+                    } else {
+                        hasEnough = points >= cost && (inventory[23] || 0) >= 11;
+                        break;
+                    }
             }
             
             if (hasEnough) {
@@ -1938,6 +1943,7 @@ document.getElementById("patchNoteModal").addEventListener("click", (e) => {
 
 </body>
 </html>
+
 
 
 
