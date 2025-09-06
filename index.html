@@ -154,7 +154,20 @@
             <button id="shopBtn" class="gacha-button px-16 py-5 rounded-full text-white font-bold text-2xl shadow-2xl touch-manipulation">
                 🏪 상점 🏪
             </button>
-            
+            <!-- 코드 입력 영역 -->
+                <div class="mt-4 flex flex-col items-center gap-2">
+                    <label for="codeInput" class="text-white text-sm">🎁 코드 입력</label>
+                    <div class="flex gap-2">
+                        <input id="codeInput" type="text" 
+                           placeholder="코드를 입력하세요"
+                           class="px-3 py-2 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-blue-400" />
+                        <button id="redeemCodeBtn"
+                                class="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 px-4 py-2 rounded-lg text-white font-bold transition-all duration-300">
+                            확인
+                        </button>
+                    </div>
+                    <p id="codeMessage" class="text-xs text-gray-300 mt-1"></p>
+                </div>
             <!-- 장착된 보석 표시 -->
             <div id="equippedGemDisplay" class="mt-4 bg-white bg-opacity-10 rounded-xl p-4 text-center text-white opacity-0 transition-all duration-300">
                 <div class="text-sm opacity-80 mb-2">장착된 보석</div>
@@ -584,6 +597,40 @@
                 messageDiv.style.opacity = '0';
             }, 2000);
         }
+        
+        // 코드 보상 시스템
+    const redeemCodes = {
+        "10120090828": { prisms: 10000, used: false }
+        // 여기에 더 추가 가능
+    };
+
+    document.getElementById('redeemCodeBtn').addEventListener('click', () => {
+        const input = document.getElementById('codeInput').value.trim();
+        const message = document.getElementById('codeMessage');
+
+        if (!input) {
+            message.textContent = "코드를 입력하세요!";
+            message.className = "text-xs text-red-400 mt-1";
+            return;
+        }
+
+        const reward = redeemCodes[input];
+        if (reward && !reward.used) {
+            prisms += reward.prisms;
+            updateDisplay();
+            autoSave();
+
+            reward.used = true;
+            message.textContent = `${reward.prisms} 프리즘을 획득했습니다!`;
+            message.className = "text-xs text-green-400 mt-1";
+        } else if (reward && reward.used) {
+            message.textContent = "이미 사용한 코드입니다!";
+            message.className = "text-xs text-yellow-400 mt-1";
+        } else {
+            message.textContent = "잘못된 코드입니다!";
+            message.className = "text-xs text-red-400 mt-1";
+        }
+    });
 
         // 포인트 획득 버튼 클릭
         earnPointsBtn.addEventListener('click', () => {
@@ -1676,6 +1723,7 @@ function updateInventoryDisplay() {
     </script>
 <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97a5f5ad930caa4a',t:'MTc1NzA3Nzc1Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
+
 
 
 
