@@ -535,6 +535,17 @@
             class="absolute top-2 right-2 text-gray-500 hover:text-black">✖</button>
   </div>
 </div>
+    <!-- 매크로 감지 모달 -->
+<div id="macroModal" 
+     class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+  <div class="bg-white rounded-lg w-96 p-6 text-center relative">
+    <p class="text-lg font-bold text-red-600 mb-4">🚨 경고</p>
+    <p id="macroText" class="text-gray-800">
+      메크로가 감지되었습니다.<br>
+      5초간 아무 입력이 없으면 자동으로 닫힙니다.
+    </p>
+  </div>
+</div>
     <script>
         let points = 0;
         let prisms = 0;
@@ -687,27 +698,83 @@ function saveUsedCodes(usedCodes) {
 
 
         // 포인트 획득 버튼 클릭
-        earnPointsBtn.addEventListener('click', () => {
-            if (isGachaActive) return; // 뽑기 진행 중이면 무시
-            
-            const earnedPoints = Math.round((1 + chorus) * multiple);
-            points += earnedPoints;
-            
-            // 휘광 체크
-            if (window.totalLux > 0) {
-                if (Math.random() * 100 < window.totalLux) {
-                    prisms += 1;
-                    updateDisplay();
-                    autoSave(); // 자동 저장
-                    showMessage(`${earnedPoints} 포인트 + 휘광으로 프리즘 1개 획득!`, 'text-purple-300');
-                    return;
-                }
+        // 매크로 감지 관련 변수
+let clickHistory = [];
+let macroTimer = null;
+let macroActive = false;
+
+// 매크로 모달 엘리먼트
+const macroModal = document.getElementById("macroModal");
+
+function openMacroModal() {
+    if (macroActive) return; // 이미 떠있으면 중복 방지
+    macroActive = true;
+    macroModal.classList.remove("hidden");
+    resetMacroCloseTimer();
+}
+
+function closeMacroModal() {
+    macroActive = false;
+    macroModal.classList.add("hidden");
+    if (macroTimer) {
+        clearTimeout(macroTimer);
+        macroTimer = null;
+    }
+    clickHistory = [];
+}
+
+// 모달 닫힘 타이머 (5초)
+function resetMacroCloseTimer() {
+    if (macroTimer) clearTimeout(macroTimer);
+    macroTimer = setTimeout(() => {
+        closeMacroModal();
+    }, 5000);
+}
+
+// 모달이 열린 동안 클릭 발생 시 5초 리셋
+document.addEventListener("click", () => {
+    if (macroActive) {
+        resetMacroCloseTimer();
+    }
+});
+
+// 포인트 획득 버튼 클릭
+earnPointsBtn.addEventListener('click', () => {
+    if (isGachaActive) return; // 뽑기 진행 중이면 무시
+
+    const now = Date.now();
+    clickHistory.push(now);
+
+    // 최근 3초간 클릭만 유지
+    clickHistory = clickHistory.filter(t => now - t <= 3000);
+
+    // 매크로 조건: 3초간 64회 이상 클릭
+    if (clickHistory.length >= 64) {
+        openMacroModal();
+        return; // 모달이 열려 있으면 포인트 획득 중단
+    }
+
+    // 모달이 안 떠 있을 때만 포인트 지급
+    if (!macroActive) {
+        const earnedPoints = Math.round((1 + chorus) * multiple);
+        points += earnedPoints;
+
+        // 휘광 체크
+        if (window.totalLux > 0) {
+            if (Math.random() * 100 < window.totalLux) {
+                prisms += 1;
+                updateDisplay();
+                autoSave(); // 자동 저장
+                showMessage(`${earnedPoints} 포인트 + 휘광으로 프리즘 1개 획득!`, 'text-purple-300');
+                return;
             }
-            
-            updateDisplay();
-            autoSave(); // 자동 저장
-            showMessage(`${earnedPoints} 포인트를 획득했습니다!`, 'text-blue-300');
-        });
+        }
+
+        updateDisplay();
+        autoSave(); // 자동 저장
+        showMessage(`${earnedPoints} 포인트를 획득했습니다!`, 'text-blue-300');
+    }
+});
 
         // 상점 버튼 클릭
         shopBtn.addEventListener('click', () => {
