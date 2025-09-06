@@ -322,8 +322,8 @@
                 <!-- 시즌 픽업 원석 -->
                 <div class="bg-white bg-opacity-5 rounded-xl p-4 flex justify-between items-center">
                     <div>
-                        <h3 class="text-lg font-bold text-white mb-1">💎 0 시즌 픽업 원석</h3>
-                        <p class="text-gray-300 text-sm">카지노 시즌 메인 보석인 에픽:다이스톤, 스페셜:???이 높은 확률로 나오는 원석입니다.</p>
+                        <h3 class="text-lg font-bold text-white mb-1">💎 0.5 시즌 픽업 원석</h3>
+                        <p class="text-gray-300 text-sm">스카이 시즌 메인 보석인 에픽:오팔, 스페셜:???,???이 높은 확률로 나오는 원석입니다.</p>
                         <p class="text-purple-300 font-medium">💎 50프리즘 | 💎 500프리즘 (10회)</p>
                     </div>
                     <div class="flex gap-2">
@@ -553,7 +553,9 @@
             17: { name: '파시티션트', emoji: '🔮', chorus: 36, multiple: 4.0, lux: 10.0, description: '태평양 어느 심해에서 발견된 빛이나는 보석입니다.' },
             18: { name: '폴리 아이드', emoji: '🧿', chorus: 30, multiple: 4.1, lux: 8.3, description: '푸른빛의 눈처럼 생긴 보석입니다.' },
             19: { name: '팔라틱 조커', emoji: '🃏', chorus: 17, multiple: 7.7, lux: 7.7, description: '<다이스 룸> 카지노에서 만든 인조 보석입니다. VIP에게 행운을 기원하는 의미로 주어집니다.' },
-            20: { name: '다이스톤', emoji: '🎲', chorus: 6, multiple: 1.6, description: '<다이스 룸> 외벽을 이루는 대리석과 비슷한 재질의 광석입니다.' }
+            20: { name: '다이스톤', emoji: '🎲', chorus: 6, multiple: 1.6, description: '<다이스 룸> 외벽을 이루는 대리석과 비슷한 재질의 광석입니다.' },
+            21: { name: '헬 크림슨', emoji: '📛', chorus: 44, multiple: 4.4, lux: 4.4, description: '지옥의 조개가 뱉은 진주입니다. 내부에 용암이 흐릅니다.'},
+            22: { name: '홀리틱 라피스', emoji: '🪽', chorus: , multiple: , lux: , description: '천국에서 쓰는 헤븐 블루 염료를 제작할때 쓰는 값비싼 보석입니다.'}
         };
 
         // 보석 등급 확인 함수
@@ -1133,7 +1135,7 @@ function updateInventoryDisplay() {
             '에픽': [7, 8, 9, 20],
             '전설': [10, 11, 12],
             '유니크': [13, 14, 15, 16],
-            '스페셜' : [17, 18, 19]
+            '스페셜' : [17, 18, 19, 21, 22]
         };
 
         // 10회 뽑기 실행
@@ -1249,18 +1251,20 @@ function updateInventoryDisplay() {
             
             // 광안의 원석 특별 확률 적용
             if (window.currentGachaType === 'luxury') {
-                if (selectedGrade.name === '에픽') {
+                if (selectedGrade.name === '전설') {
                     const random = Math.random();
                     if (random < 0.6) {
-                        selectedReward = 20; // 다이스톤
+                        selectedReward = 10; // 오팔
                     } else {
                         selectedReward = possibleRewards[Math.floor(Math.random() * possibleRewards.length)];
                     }
                 } else if (selectedGrade.name === '스페셜') {
                     const random = Math.random();
                     if (random < 0.6) {
-                        selectedReward = 19; // 팔라틱 조커
-                    } else {
+                        selectedReward = 21; // 헬 크림슨
+                    } 
+                    //else if (random )
+                    else {
                         selectedReward = possibleRewards[Math.floor(Math.random() * possibleRewards.length)];
                     }
                 } else {
@@ -1670,6 +1674,7 @@ function updateInventoryDisplay() {
     </script>
 <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97a5f5ad930caa4a',t:'MTc1NzA3Nzc1Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
+
 
 
 
