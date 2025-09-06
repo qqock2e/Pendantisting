@@ -1087,7 +1087,7 @@ function updateInventoryDisplay() {
     gemList.innerHTML = '';
 
     // 등급 순서 정의
-    const gradeOrder = ['일반', '희귀', '에픽', '전설', '유니크', '스페셜'];
+    const gradeOrder = ['일반', '희귀', '에픽', '전설', '유니크', '스페셜', '이벤트'];
 
     // 보석 ID 정렬 (등급 > 이름 순)
     const sortedGemIds = Object.keys(inventory).sort((a, b) => {
@@ -1264,7 +1264,7 @@ function updateInventoryDisplay() {
                 case 'event':
                     cost = count === 10 ? 500000 : 50000;
                     currency = 'points';
-                    hasEnough = points >= cost;
+                    hasEnough = points >= cost && (inventory[23] || 0) >= 2;
                     break;
             }
             
@@ -1932,6 +1932,7 @@ document.getElementById("patchNoteModal").addEventListener("click", (e) => {
 
 </body>
 </html>
+
 
 
 
