@@ -168,6 +168,13 @@
                     </div>
                     <p id="codeMessage" class="text-xs text-gray-300 mt-1"></p>
                 </div>
+            <!-- 패치노트 버튼 -->
+<div class="absolute bottom-4 right-4">
+  <button id="patchNoteBtn"
+          class="bg-gray-700 hover:bg-gray-800 text-white px-4 py-2 rounded-lg text-sm">
+    패치노트
+  </button>
+</div>
             <!-- 장착된 보석 표시 -->
             <div id="equippedGemDisplay" class="mt-4 bg-white bg-opacity-10 rounded-xl p-4 text-center text-white opacity-0 transition-all duration-300">
                 <div class="text-sm opacity-80 mb-2">장착된 보석</div>
@@ -544,6 +551,32 @@
         const shopBtn = document.getElementById('shopBtn');
         const inventoryBtn = document.getElementById('inventoryBtn');
         const messageDiv = document.getElementById('message');
+        // 패치노트 내용 (여기서 수정하면 됨!)
+const patchNoteText = `
+📅 0.0.4 알파 업데이트
+- 코드 입력 기능 추가 (프리즘/보석 지급 가능)
+- 스패셜 2종 추가
+- 0.5시즌 오픈
+- UI 일부 개선
+`;
+
+// 버튼 이벤트
+document.getElementById("patchNoteBtn").addEventListener("click", () => {
+    document.getElementById("patchNoteContent").textContent = patchNoteText;
+    document.getElementById("patchNoteModal").classList.remove("hidden");
+});
+
+// 닫기 버튼
+document.getElementById("closePatchNote").addEventListener("click", () => {
+    document.getElementById("patchNoteModal").classList.add("hidden");
+});
+
+// 모달 바깥 클릭 시 닫기
+document.getElementById("patchNoteModal").addEventListener("click", (e) => {
+    if (e.target.id === "patchNoteModal") {
+        document.getElementById("patchNoteModal").classList.add("hidden");
+    }
+});
 
         // 보석 데이터 (유지보수 쉽게 하기 위해 별도 객체로 관리)
         const gemData = {
@@ -1764,8 +1797,20 @@ function updateInventoryDisplay() {
             window.totalLux = 0;
         }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97a5f5ad930caa4a',t:'MTc1NzA3Nzc1Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97a5f5ad930caa4a',t:'MTc1NzA3Nzc1Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+<!-- 패치노트 모달 -->
+<div id="patchNoteModal" 
+     class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+  <div class="bg-white rounded-lg w-96 max-h-[80vh] overflow-y-auto p-6 relative">
+    <h2 class="text-lg font-bold mb-4">📜 패치노트</h2>
+    <pre id="patchNoteContent" class="text-sm whitespace-pre-wrap text-gray-800"></pre>
+    <button id="closePatchNote" 
+            class="absolute top-2 right-2 text-gray-500 hover:text-black">✖</button>
+  </div>
+</div>
+</body>
 </html>
+
 
 
 
