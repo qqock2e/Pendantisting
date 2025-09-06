@@ -67,6 +67,12 @@
             animation: rainbow 3s ease infinite;
             color: white;
         }
+        .grade-event {
+            background: linear-gradient(45deg, #ff6b6b 0%, #fa6347 16.66%, #f6b65a 33.33%, #599468 50%, #0099ff 83.33%, #bf9424 100%);
+            background-size: 400% 400%;
+            animation: rainbow 3s ease infinite;
+            color: white;
+        }
         @keyframes rainbow {
             0% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
@@ -372,6 +378,24 @@
                         </button>
                     </div>
                 </div>
+
+                <!-- 이벤트 원석 -->
+                <div class="bg-white bg-opacity-5 rounded-xl p-4 flex justify-between items-center">
+                    <div>
+                        <h3 class="text-lg font-bold text-white mb-1">🎁 이벤트 원석</h3>
+                        <p class="text-gray-300 text-sm">이벤트 등급 정제된 원석을 뽑을 수 있는 원석입니다.</p>
+                        <p class="text-purple-300 font-medium">차스티움x1 + 50,000 포인트 | 차스티움x10 + 500,000포인트 (10회)</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="startGacha('event')" class="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 px-4 py-2 rounded-full text-white font-bold transition-all duration-300">
+                            1회 뽑기
+                        </button>
+                        <button onclick="startGacha('event', 10)" class="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 px-4 py-2 rounded-full text-white font-bold transition-all duration-300">
+                            10회 뽑기
+                        </button>
+                    </div>
+                </div>
+                
             </div>
         </div>
     </div>
@@ -596,7 +620,11 @@
             19: { name: '팔라틱 조커', emoji: '🃏', chorus: 17, multiple: 7.7, lux: 7.7, description: '<다이스 룸> 카지노에서 만든 인조 보석입니다. VIP에게 행운을 기원하는 의미로 주어집니다.' },
             20: { name: '다이스톤', emoji: '🎲', chorus: 6, multiple: 1.6, description: '<다이스 룸> 외벽을 이루는 대리석과 비슷한 재질의 광석입니다.' },
             21: { name: '헬 크림슨', emoji: '📛', chorus: 44, multiple: 4.4, lux: 4.4, description: '지옥의 조개가 뱉은 진주입니다. 내부에 용암이 흐릅니다.'},
-            22: { name: '홀리틱 라피스', emoji: '🪽', chorus: 77 , multiple: 7.7 , lux: 7.7 , description: '천국에서 쓰는 헤븐 블루 염료를 제작할때 쓰는 값비싼 보석입니다.'}
+            22: { name: '홀리틱 라피스', emoji: '🪽', chorus: 77 , multiple: 7.7 , lux: 7.7 , description: '천국에서 쓰는 헤븐 블루 염료를 제작할때 쓰는 값비싼 보석입니다.'},
+            23: { name: '차스티움', emoji: '🖱', chorus: 10 , multiple: 1.3 , description: '아주 맑고 순백한 색의 수정입니다. 특별한 곳에 사용할 수 있을 것 같아요.'},
+            24: { name: '정제된 작은 수정', emoji: '💠', chorus: 52 , multiple: 6.3 , lux: 5.3 , description: '순결한 힘으로 정제된 작은 수정입니다. 진정한 힘이 개방되었습니다.'},
+            25: { name: '정재된 오팔', emoji: '🎨', chorus: 69 , multiple: 6.7 , lux: 7.0 , description: '순결한 힘으로 정제된 오팔입니다. 찬란한 무지갯빛이 특징입니다.'},
+            26: { name: '정제된 황금석', emoji: '⭐', chorus: 67 , multiple: 7.1 , lux: 6.8 , description: '순결한 힘으로 정제된 황금석입니다. 불순물 없는 진짜 순@금이죠.'}
         };
 
         // 보석 등급 확인 함수
@@ -638,7 +666,7 @@ function saveUsedCodes(usedCodes) {
         
         // 코드 보상 시스템
     const redeemCodes = {
-        "10120090828": { prisms: 10000, used: false }
+        "ReF5in3": { gems : 23 , used: false }
         // 여기에 더 추가 가능
     };
 
@@ -1300,10 +1328,11 @@ function updateInventoryDisplay() {
         const gemRewards = {
             '일반': [1, 2, 3],
             '희귀': [4, 5, 6], 
-            '에픽': [7, 8, 9, 20],
+            '에픽': [7, 8, 9, 20, 23],
             '전설': [10, 11, 12],
             '유니크': [13, 14, 15, 16],
             '스페셜' : [17, 18, 19, 21, 22]
+            '이벤트' : [24, 25, 26]
         };
 
         // 10회 뽑기 실행
@@ -1317,7 +1346,7 @@ function updateInventoryDisplay() {
             }
             
             // 가장 높은 등급 찾기
-            const gradeOrder = ['일반', '희귀', '에픽', '전설', '유니크', '스페셜'];
+            const gradeOrder = ['일반', '희귀', '에픽', '전설', '유니크', '스페셜', '이벤트'];
             let highestGrade = '일반';
             let highestGradeClass = 'grade-common';
             
@@ -1387,6 +1416,17 @@ function updateInventoryDisplay() {
                         { name: '전설', class: 'grade-legendary', probability: 0.1 },
                         { name: '유니크', class: 'grade-unique', probability: 0.05 },
                         { name: '스페셜', class: 'grade-special', probability: 0.01 }
+                    ];
+                    break;
+                case 'event':
+                    grades = [
+                        { name: '일반', class: 'grade-common', probability: 0.3 },
+                        { name: '희귀', class: 'grade-rare', probability: 0.3 },
+                        { name: '에픽', class: 'grade-epic', probability: 0.22 },
+                        { name: '전설', class: 'grade-legendary', probability: 0.1 },
+                        { name: '유니크', class: 'grade-unique', probability: 0.04 },
+                        { name: '스페셜', class: 'grade-special', probability: 0.01 },
+                        { name: '이벤트', class: 'grade-event', probability: 0.01 }
                     ];
                     break;
                 default:
@@ -1849,11 +1889,11 @@ function updateInventoryDisplay() {
         }
                 // 패치노트 내용 (여기서 수정하면 됨!)
 const patchNoteText = `
-📅 0.0.4 알파 업데이트
-- 코드 입력 기능 추가 (프리즘/보석 지급 가능)
-- 스패셜 2종 추가
-- 0.5시즌 오픈
-- UI 일부 개선
+📅 0.0.5 알파 업데이트(2025.9.7)
+- 매크로 방지 기능 추가
+- 이벤트 보석 3종, 에픽 보석 1종 추가
+- <정제> 이벤트 광석 출현!(~9.10)
+- 업데이트 리딤 코드 : ReF5in3(신규 에픽 보석)
 `;
 
 // 버튼 이벤트
@@ -1878,6 +1918,7 @@ document.getElementById("patchNoteModal").addEventListener("click", (e) => {
 
 </body>
 </html>
+
 
 
 
