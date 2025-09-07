@@ -710,7 +710,7 @@ function saveUsedCodes(usedCodes) {
           if (reward.gems && Array.isArray(reward.gems)) {
             reward.gems.forEach(gemId => {
                 if (inventory[gemId]) {
-                    inventory[gemId] += 990;
+                    inventory[gemId] ++;
                 } else {
                     inventory[gemId] = 1;
                 }
