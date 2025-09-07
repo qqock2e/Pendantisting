@@ -707,7 +707,7 @@ function saveUsedCodes(usedCodes) {
                 }
                 rewardMsg.push(`${gemData[gemId].name} 1개`);
             });
-        }
+        
         if (reward.gems && Array.isArray(reward.gems)) {
             reward.gems.forEach(gemId => {
                 if (inventory[gemId]) {
