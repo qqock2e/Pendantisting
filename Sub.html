@@ -736,10 +736,6 @@ function saveUsedCodes(usedCodes) {
     }
 });
 
-        updateDisplay();
-        updateInventoryDisplay();
-        autoSave();
-
         //개발자 도구 단축키 차단
 document.addEventListener('keydown', function(e) {
     // F12
@@ -766,6 +762,9 @@ document.addEventListener('contextmenu', function(e) {
     e.preventDefault();
     alert("우클릭이 제한되었습니다!");
 });
+        updateDisplay();
+        updateInventoryDisplay();
+        autoSave();
 
         
         // 포인트 획득 버튼 클릭
