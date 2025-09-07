@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>뽑기 게임</title>
+    <meta name="build-time" content="2025-09-07T19:19:25">
+    <title>펜던티스트</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap');
@@ -574,7 +575,7 @@
         let points = 0;
         let prisms = 0;
         let gems = 0; // 보석 별도 관리
-        let chorus = 1;
+        let chorus = 0;
         let multiple = 1;
         let isGachaActive = false; // 뽑기 진행 중 상태 관리
         let inventory = {}; // 인벤토리 객체 (보석ID: 개수)
@@ -1941,9 +1942,30 @@ document.getElementById("patchNoteModal").addEventListener("click", (e) => {
 });
     </script>
 <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97a5f5ad930caa4a',t:'MTc1NzA3Nzc1Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+<script>
+  const currentBuild = document.querySelector("meta[name='build-time']").content;
+
+  async function checkUpdate() {
+    try {
+      const res = await fetch("index.html", { cache: "no-store" });
+      const text = await res.text();
+      const match = text.match(/<meta name="build-time" content="([^"]+)">/);
+      if (match && match[1] !== currentBuild) {
+        console.log("새 버전 감지됨 → 페이지 새로고침");
+        location.reload(true);
+      }
+    } catch (err) {
+      console.error("업데이트 체크 실패:", err);
+    }
+  }
+
+  // 30초마다 확인
+  setInterval(checkUpdate, 30000);
+</script>
 
 </body>
 </html>
+
 
 
 
