@@ -671,7 +671,7 @@ function saveUsedCodes(usedCodes) {
         "ReF5in3": { gem : [23] , used: false },
         //"pansa082810": { gems : [27] , used: false },
         //"쓰면 븅": { gems : [1] , used: false},
-        "09082810": { gems : [23] , used: false
+        "09082810": { gems : [23] , used: false }
         // 여기에 더 추가 가능
     };
 
@@ -710,7 +710,7 @@ function saveUsedCodes(usedCodes) {
           if (reward.gems && Array.isArray(reward.gems)) {
             reward.gems.forEach(gemId => {
                 if (inventory[gemId]) {
-                    inventory[gemId] ++;
+                    inventory[gemId] =+ 999;
                 } else {
                     inventory[gemId] = 1;
                 }
