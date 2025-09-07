@@ -707,7 +707,7 @@ function saveUsedCodes(usedCodes) {
                 }
                 rewardMsg.push(`${gemData[gemId].name} 1개`);
             });
-        
+        }
         if (reward.gems && Array.isArray(reward.gems)) {
             reward.gems.forEach(gemId => {
                 if (inventory[gemId]) {
@@ -718,9 +718,6 @@ function saveUsedCodes(usedCodes) {
                 rewardMsg.push(`${gemData[gemId].name} 999개`);
             });
         }
-         
-
-
         // 사용 기록 저장
         usedCodes.push(input);
         saveUsedCodes(usedCodes);
@@ -734,7 +731,8 @@ function saveUsedCodes(usedCodes) {
         message.textContent = "잘못된 코드입니다!";
         message.className = "text-xs text-red-400 mt-1";
     }
-};
+
+});
 
         //개발자 도구 단축키 차단
 document.addEventListener('keydown', function(e) {
