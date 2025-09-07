@@ -566,7 +566,7 @@
     <p class="text-lg font-bold text-red-600 mb-4">🚨 경고</p>
     <p id="macroText" class="text-gray-800">
       메크로가 감지되었습니다.<br>
-      5초간 아무 입력이 없으면 자동으로 닫힙니다.
+      30초간 아무 입력이 없으면 자동으로 닫힙니다.
     </p>
   </div>
 </div>
@@ -759,7 +759,7 @@ function resetMacroCloseTimer() {
     if (macroTimer) clearTimeout(macroTimer);
     macroTimer = setTimeout(() => {
         closeMacroModal();
-    }, 5000);
+    }, 30000);
 }
 
 // 모달이 열린 동안 클릭 발생 시 5초 리셋
@@ -780,7 +780,7 @@ earnPointsBtn.addEventListener('click', () => {
     clickHistory = clickHistory.filter(t => now - t <= 3000);
 
     // 매크로 조건: 3초간 64회 이상 클릭
-    if (clickHistory.length >= 64) {
+    if (clickHistory.length >= 51) {
         openMacroModal();
         return; // 모달이 열려 있으면 포인트 획득 중단
     }
@@ -1944,6 +1944,7 @@ document.getElementById("patchNoteModal").addEventListener("click", (e) => {
 
 </body>
 </html>
+
 
 
 
