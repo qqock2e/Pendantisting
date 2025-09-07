@@ -708,6 +708,33 @@ function saveUsedCodes(usedCodes) {
             });
         }
 
+        // 개발자 도구 단축키 차단
+document.addEventListener('keydown', function(e) {
+    // F12
+    if (e.keyCode === 123) {
+        e.preventDefault();
+        alert("개발자 도구 사용이 제한되었습니다!");
+        return false;
+    }
+    // Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U
+    if (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74)) {
+        e.preventDefault();
+        alert("개발자 도구 사용이 제한되었습니다!");
+        return false;
+    }
+    if (e.ctrlKey && e.keyCode === 85) {
+        e.preventDefault();
+        alert("소스 보기가 제한되었습니다!");
+        return false;
+    }
+});
+
+// 우클릭 방지
+document.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+    alert("우클릭이 제한되었습니다!");
+});
+
         updateDisplay();
         updateInventoryDisplay();
         autoSave();
@@ -1965,6 +1992,7 @@ document.getElementById("patchNoteModal").addEventListener("click", (e) => {
 
 </body>
 </html>
+
 
 
 
