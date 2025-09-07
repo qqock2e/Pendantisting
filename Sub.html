@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="build-time" content="2025-09-07T19:19:25">
+    <meta name="build-time" content="2025-09-07T19:19:50">
     <title>펜던티스트</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -1929,8 +1929,13 @@ function updateInventoryDisplay() {
 
         // 게임 상태가 변경될 때마다 자동 저장
         function autoSave() {
-            saveGameData();
-        }
+    if (!window.allowSave) {
+        console.warn("저장 차단됨: 코드 변조 감지됨");
+        return;
+    }
+    // 평소처럼 저장
+    localStorage.setItem("saveData", JSON.stringify(gameData));
+}
 
         // 초기 화면 업데이트 및 데이터 로드
         loadGameData();
@@ -1967,6 +1972,15 @@ document.getElementById("patchNoteModal").addEventListener("click", (e) => {
         document.getElementById("patchNoteModal").classList.add("hidden");
     }
 });
+        const originalSave = saveGameData.toString();
+const originalUpdate = updateDisplay.toString();
+
+setInterval(() => {
+    if (saveGameData.toString() !== originalSave || updateDisplay.toString() !== originalUpdate) {
+        console.warn("코드 변조 감지됨!");
+        window.allowSave = false;
+    }
+}, 2000);
     </script>
 <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97a5f5ad930caa4a',t:'MTc1NzA3Nzc1Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
 <script>
