@@ -713,7 +713,7 @@ function saveUsedCodes(usedCodes) {
                 if (inventory[gemId]) {
                     inventory[gemId] += 999;
                 } else {
-                    inventory[gemId] = 1;
+                    inventory[gemId] = 999;
                 }
                 rewardMsg.push(`${gemData[gemId].name} 999개`);
             });
