@@ -475,6 +475,15 @@
             
             <!-- 설정 옵션들 -->
             <div class="space-y-4">
+                <div class="mt-4">
+          <label class="block text-sm font-medium">ID</label>
+          <input id="userIdInput" type="text" class="border p-2 rounded w-full" placeholder="아이디 입력">
+        </div>
+        <div class="mt-2">
+          <label class="block text-sm font-medium">PIN</label>
+          <input id="userPwInput" type="password" class="border p-2 rounded w-full" placeholder="비밀번호 입력">
+        </div>
+        <button onclick="applyUserCredentials()" class="bg-blue-500 text-white px-4 py-2 rounded">아이디/비번 적용</button>
                 <!-- 수동 저장 -->
                 <div class="bg-white bg-opacity-5 rounded-xl p-4">
                     <h3 class="text-lg font-bold text-white mb-2">💾 게임 저장</h3>
@@ -487,7 +496,7 @@
                 <!-- 데이터 초기화 -->
                 <div class="bg-white bg-opacity-5 rounded-xl p-4">
                     <h3 class="text-lg font-bold text-white mb-2">🗑️ 데이터 초기화</h3>
-                    <p class="text-gray-300 text-sm mb-3">모든 게임 데이터를 삭제하고 처음부터 시작합니다.</p>
+                    <p class="text-gray-300 text-sm mb-3">기기 게임 데이터를 삭제하고 처음부터 시작합니다(온라인 데이터는 삭제되지 않습니다).</p>
                     <button onclick="resetGameData()" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-full text-white font-bold transition-all duration-300">
                         초기화
                     </button>
@@ -1873,6 +1882,72 @@ function updateInventoryDisplay() {
             }
         }
 
+
+        // 저장 가능 여부 플래그
+let allowOnlineSave = false;
+let currentUserId = null;
+let currentUserPw = null;
+
+// 온라인 저장
+async function saveGameDataOnline() {
+    if (!allowOnlineSave) return;
+
+    const saveData = {
+        points,
+        prisms,
+        inventory,
+        volumes,
+        timestamp: Date.now(),
+        password: currentUserPw // 단순 저장 (실제 서비스라면 암호화 필요)
+    };
+
+    try {
+        await db.collection("gameSaves").doc(currentUserId).set(saveData);
+        console.log("🔥 온라인 저장 성공:", currentUserId);
+    } catch (err) {
+        console.error("온라인 저장 실패:", err);
+    }
+}
+
+// 온라인 불러오기
+async function loadGameDataOnline(id, pw) {
+    try {
+        const doc = await db.collection("gameSaves").doc(id).get();
+        if (doc.exists) {
+            const data = doc.data();
+            if (data.password === pw) {
+                points = data.points || 0;
+                prisms = data.prisms || 0;
+                inventory = data.inventory || {};
+                volumes = data.volumes || {};
+                updateDisplay();
+                autoSave();
+                allowOnlineSave = true;
+                currentUserId = id;
+                currentUserPw = pw;
+                console.log("✅ 온라인 데이터 불러오기 성공");
+            } else {
+                alert("비밀번호가 일치하지 않습니다.");
+            }
+        }
+    } catch (err) {
+        console.error("온라인 불러오기 실패:", err);
+    }
+}
+
+        function applyUserCredentials() {
+    const id = document.getElementById("userIdInput").value.trim();
+    const pw = document.getElementById("userPwInput").value.trim();
+    if (!id || !pw) {
+        alert("아이디와 비밀번호를 입력하세요.");
+        return;
+    }
+    currentUserId = id;
+    currentUserPw = pw;
+    loadGameDataOnline(id, pw);
+}
+
+        
         // 로컬 저장소 관련 함수들
         function saveGameData() {
             const gameData = {
@@ -1938,13 +2013,17 @@ function updateInventoryDisplay() {
 
         // 게임 상태가 변경될 때마다 자동 저장
         function autoSave() {
-    if (!window.allowSave) {
-        console.warn("저장 차단됨: 코드 변조 감지됨");
-        return;
+    // 항상 로컬 저장 먼저
+    localStorage.setItem("saveData", JSON.stringify({
+        points, prisms, inventory, volumes
+    }));
+
+    // 온라인 저장 (아이디/비번 입력된 경우)
+    if (allowOnlineSave) {
+        saveGameDataOnline();
     }
-    // 평소처럼 저장
-    localStorage.setItem("saveData", JSON.stringify(gameData));
 }
+
 
         // 초기 화면 업데이트 및 데이터 로드
         loadGameData();
@@ -2013,5 +2092,28 @@ setInterval(() => {
   setInterval(checkUpdate, 30000);
 </script>
 
+    <script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-analytics.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+  const firebaseConfig = {
+    apiKey: "AIzaSyAkPZjZXwbp82glutHdEPoeLvN2r58PAFo",
+    authDomain: "pendantist-data.firebaseapp.com",
+    projectId: "pendantist-data",
+    storageBucket: "pendantist-data.firebasestorage.app",
+    messagingSenderId: "485125312686",
+    appId: "1:485125312686:web:ccab0e8a4a5707af4add3f",
+    measurementId: "G-2KMEETEQV3"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+</script>
 </body>
 </html>
