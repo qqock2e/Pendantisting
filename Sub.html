@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>뽑기 게임</title>
+    <meta name="build-time" content="2025-09-08T18:03:00">
+    <title>펜던티스트</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap');
@@ -63,6 +64,12 @@
         }
         .grade-special {
             background: linear-gradient(45deg, #ff6b6b 0%, #fab005 16.66%, #fa5005 33.33%, #0abde3 50%, #ff9ff3 66.66%, #54a0ff 83.33%, #5f27cd 100%);
+            background-size: 400% 400%;
+            animation: rainbow 3s ease infinite;
+            color: white;
+        }
+        .grade-event {
+            background: linear-gradient(45deg, #ff6b6b 0%, #fa6347 16.66%, #f6b65a 33.33%, #599468 50%, #0099ff 83.33%, #bf9424 100%);
             background-size: 400% 400%;
             animation: rainbow 3s ease infinite;
             color: white;
@@ -372,6 +379,24 @@
                         </button>
                     </div>
                 </div>
+
+                <!-- 이벤트 원석 -->
+                <div class="bg-white bg-opacity-5 rounded-xl p-4 flex justify-between items-center">
+                    <div>
+                        <h3 class="text-lg font-bold text-white mb-1">🎁 이벤트 원석</h3>
+                        <p class="text-gray-300 text-sm">이벤트 등급 정제된 원석을 뽑을 수 있는 원석입니다.</p>
+                        <p class="text-purple-300 font-medium">차스티움x1 + 50,000 포인트 | 차스티움x10 + 500,000포인트 (10회)</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="startGacha('event')" class="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 px-4 py-2 rounded-full text-white font-bold transition-all duration-300">
+                            1회 뽑기
+                        </button>
+                        <button onclick="startGacha('event', 10)" class="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 px-4 py-2 rounded-full text-white font-bold transition-all duration-300">
+                            10회 뽑기
+                        </button>
+                    </div>
+                </div>
+                
             </div>
         </div>
     </div>
@@ -450,6 +475,15 @@
             
             <!-- 설정 옵션들 -->
             <div class="space-y-4">
+                <div class="mt-4">
+          <label class="block text-sm font-medium">ID</label>
+          <input id="userIdInput" type="text" class="border p-2 rounded w-full" placeholder="아이디 입력">
+        </div>
+        <div class="mt-2">
+          <label class="block text-sm font-medium">PIN</label>
+          <input id="userPwInput" type="password" class="border p-2 rounded w-full" placeholder="비밀번호 입력">
+        </div>
+        <button onclick="applyUserCredentials()" class="bg-blue-500 text-white px-4 py-2 rounded">아이디/비번 적용</button>
                 <!-- 수동 저장 -->
                 <div class="bg-white bg-opacity-5 rounded-xl p-4">
                     <h3 class="text-lg font-bold text-white mb-2">💾 게임 저장</h3>
@@ -462,7 +496,7 @@
                 <!-- 데이터 초기화 -->
                 <div class="bg-white bg-opacity-5 rounded-xl p-4">
                     <h3 class="text-lg font-bold text-white mb-2">🗑️ 데이터 초기화</h3>
-                    <p class="text-gray-300 text-sm mb-3">모든 게임 데이터를 삭제하고 처음부터 시작합니다.</p>
+                    <p class="text-gray-300 text-sm mb-3">기기 게임 데이터를 삭제하고 처음부터 시작합니다(온라인 데이터는 삭제되지 않습니다).</p>
                     <button onclick="resetGameData()" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-full text-white font-bold transition-all duration-300">
                         초기화
                     </button>
@@ -542,15 +576,35 @@
     <p class="text-lg font-bold text-red-600 mb-4">🚨 경고</p>
     <p id="macroText" class="text-gray-800">
       메크로가 감지되었습니다.<br>
-      5초간 아무 입력이 없으면 자동으로 닫힙니다.
+      30초간 아무 입력이 없으면 자동으로 닫힙니다.
     </p>
   </div>
 </div>
+    <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+  import { getFirestore } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAkPZjZXwbp82glutHdEPoeLvN2r58PAFo",
+    authDomain: "pendantist-data.firebaseapp.com",
+    projectId: "pendantist-data",
+    storageBucket: "pendantist-data.appspot.com",
+    messagingSenderId: "485125312686",
+    appId: "1:485125312686:web:ccab0e8a4a5707af4add3f",
+    measurementId: "G-2KMEETEQV3"
+  };
+
+  // Firebase 초기화
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  window.db = db; // 다른 스크립트에서 접근 가능하도록 전역 등록
+</script>
+
     <script>
         let points = 0;
         let prisms = 0;
         let gems = 0; // 보석 별도 관리
-        let chorus = 1;
+        let chorus = 0;
         let multiple = 1;
         let isGachaActive = false; // 뽑기 진행 중 상태 관리
         let inventory = {}; // 인벤토리 객체 (보석ID: 개수)
@@ -596,7 +650,12 @@
             19: { name: '팔라틱 조커', emoji: '🃏', chorus: 17, multiple: 7.7, lux: 7.7, description: '<다이스 룸> 카지노에서 만든 인조 보석입니다. VIP에게 행운을 기원하는 의미로 주어집니다.' },
             20: { name: '다이스톤', emoji: '🎲', chorus: 6, multiple: 1.6, description: '<다이스 룸> 외벽을 이루는 대리석과 비슷한 재질의 광석입니다.' },
             21: { name: '헬 크림슨', emoji: '📛', chorus: 44, multiple: 4.4, lux: 4.4, description: '지옥의 조개가 뱉은 진주입니다. 내부에 용암이 흐릅니다.'},
-            22: { name: '홀리틱 라피스', emoji: '🪽', chorus: 77 , multiple: 7.7 , lux: 7.7 , description: '천국에서 쓰는 헤븐 블루 염료를 제작할때 쓰는 값비싼 보석입니다.'}
+            22: { name: '홀리틱 라피스', emoji: '🪽', chorus: 77 , multiple: 7.7 , lux: 7.7 , description: '천국에서 쓰는 헤븐 블루 염료를 제작할때 쓰는 값비싼 보석입니다.'},
+            23: { name: '차스티움', emoji: '🖱', chorus: 10 , multiple: 1.3 , description: '아주 맑고 순백한 색의 수정입니다. 특별한 곳에 사용할 수 있을 것 같아요.'},
+            24: { name: '정제된 작은 수정', emoji: '💠', chorus: 52 , multiple: 6.3 , lux: 5.3 , description: '순결한 힘으로 정제된 작은 수정입니다. 진정한 힘이 개방되었습니다.'},
+            25: { name: '정재된 오팔', emoji: '🎨', chorus: 69 , multiple: 6.7 , lux: 7.0 , description: '순결한 힘으로 정제된 오팔입니다. 찬란한 무지갯빛이 특징입니다.'},
+            26: { name: '정제된 황금석', emoji: '⭐', chorus: 67 , multiple: 7.1 , lux: 6.8 , description: '순결한 힘으로 정제된 황금석입니다. 불순물 없는 진짜 순@금이죠.'},
+            27: { name: 'GM', emoji: '⭐', chorus: 99999 , multiple: 1.1 , lux: 100.0 , description: 'GM.'}
         };
 
         // 보석 등급 확인 함수
@@ -638,7 +697,10 @@ function saveUsedCodes(usedCodes) {
         
         // 코드 보상 시스템
     const redeemCodes = {
-        "10120090828": { prisms: 10000, used: false }
+        "ReF5in3": { gem : [23] , used: false },
+        //"pansa082810": { gems : [27] , used: false },
+        //"쓰면 븅": { gems : [1] , used: false},
+        //"09082810": { gems: [23] , used: false }
         // 여기에 더 추가 가능
     };
 
@@ -665,8 +727,8 @@ function saveUsedCodes(usedCodes) {
         }
 
         // 보석 지급
-        if (reward.gems && Array.isArray(reward.gems)) {
-            reward.gems.forEach(gemId => {
+        if (reward.gem && Array.isArray(reward.gem)) {
+            reward.gem.forEach(gemId => {
                 if (inventory[gemId]) {
                     inventory[gemId]++;
                 } else {
@@ -675,11 +737,16 @@ function saveUsedCodes(usedCodes) {
                 rewardMsg.push(`${gemData[gemId].name} 1개`);
             });
         }
-
-        updateDisplay();
-        updateInventoryDisplay();
-        autoSave();
-
+        if (reward.gems && Array.isArray(reward.gems)) {
+            reward.gems.forEach(gemId => {
+                if (inventory[gemId]) {
+                    inventory[gemId] += 999;
+                } else {
+                    inventory[gemId] = 999;
+                }
+                rewardMsg.push(`${gemData[gemId].name} 999개`);
+            });
+        }
         // 사용 기록 저장
         usedCodes.push(input);
         saveUsedCodes(usedCodes);
@@ -693,10 +760,40 @@ function saveUsedCodes(usedCodes) {
         message.textContent = "잘못된 코드입니다!";
         message.className = "text-xs text-red-400 mt-1";
     }
+
 });
 
+        //개발자 도구 단축키 차단
+document.addEventListener('keydown', function(e) {
+    // F12
+    if (e.keyCode === 123) {
+        e.preventDefault();
+        alert("개발자 도구 사용이 제한되었습니다!");
+        return false;
+    }
+    // Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U
+    if (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74)) {
+        e.preventDefault();
+        alert("개발자 도구 사용이 제한되었습니다!");
+        return false;
+    }
+    if (e.ctrlKey && e.keyCode === 85) {
+        e.preventDefault();
+        alert("소스 보기가 제한되었습니다!");
+        return false;
+    }
+});
 
+// 우클릭 방지
+document.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+    alert("우클릭이 제한되었습니다!");
+});
+        updateDisplay();
+        updateInventoryDisplay();
+        autoSave();
 
+        
         // 포인트 획득 버튼 클릭
         // 매크로 감지 관련 변수
 let clickHistory = [];
@@ -728,7 +825,7 @@ function resetMacroCloseTimer() {
     if (macroTimer) clearTimeout(macroTimer);
     macroTimer = setTimeout(() => {
         closeMacroModal();
-    }, 5000);
+    }, 30000);
 }
 
 // 모달이 열린 동안 클릭 발생 시 5초 리셋
@@ -749,7 +846,7 @@ earnPointsBtn.addEventListener('click', () => {
     clickHistory = clickHistory.filter(t => now - t <= 3000);
 
     // 매크로 조건: 3초간 64회 이상 클릭
-    if (clickHistory.length >= 64) {
+    if (clickHistory.length >= 51) {
         openMacroModal();
         return; // 모달이 열려 있으면 포인트 획득 중단
     }
@@ -1059,7 +1156,7 @@ function updateInventoryDisplay() {
     gemList.innerHTML = '';
 
     // 등급 순서 정의
-    const gradeOrder = ['일반', '희귀', '에픽', '전설', '유니크', '스페셜'];
+    const gradeOrder = ['일반', '희귀', '에픽', '전설', '유니크', '스페셜', '이벤트'];
 
     // 보석 ID 정렬 (등급 > 이름 순)
     const sortedGemIds = Object.keys(inventory).sort((a, b) => {
@@ -1233,10 +1330,29 @@ function updateInventoryDisplay() {
                     currency = 'points';
                     hasEnough = points >= cost;
                     break;
+                case 'event':
+                    cost = count === 10 ? 500000 : 50000;
+                    currency = 'points';
+                    if (cost === 50000) {
+                        hasEnough = points >= cost && (inventory[23] || 0) >= 2;
+                        break;
+                    } else {
+                        hasEnough = points >= cost && (inventory[23] || 0) >= 11;
+                        break;
+                    }
             }
             
             if (hasEnough) {
-                if (currency === 'points') {
+                if (type === 'event') {
+                    // 포인트 차감
+                    points -= cost;
+                    // 보석 1개 소모
+                    if (cost === 500000) {
+                        inventory[23] -= 10;    
+                    } else {
+                        inventory[23] -= 1;
+                    }
+                } else if (currency === 'points') {
                     points -= cost;
                 } else {
                     prisms -= cost;
@@ -1257,8 +1373,12 @@ function updateInventoryDisplay() {
                 window.currentGachaCount = count;
                 startGachaAnimation();
             } else {
-                const currencyName = currency === 'points' ? '포인트' : '프리즘';
-                showMessage(`${currencyName}이 부족합니다! (${cost} ${currencyName} 필요)`, 'text-red-300');
+                if (type === 'event') {
+                    showMessage(`❌ 이벤트 뽑기에는 포인트 ${cost}와 보석(ID:23) 2개 이상이 필요합니다!`, 'text-red-300');
+                } else {
+                    const currencyName = currency === 'points' ? '포인트' : '프리즘';
+                    showMessage(`${currencyName}이 부족합니다! (${cost} ${currencyName} 필요)`, 'text-red-300');
+                }
             }
         }
 
@@ -1300,10 +1420,11 @@ function updateInventoryDisplay() {
         const gemRewards = {
             '일반': [1, 2, 3],
             '희귀': [4, 5, 6], 
-            '에픽': [7, 8, 9, 20],
+            '에픽': [7, 8, 9, 20, 23],
             '전설': [10, 11, 12],
             '유니크': [13, 14, 15, 16],
-            '스페셜' : [17, 18, 19, 21, 22]
+            '스페셜' : [17, 18, 19, 21, 22],
+            '이벤트' : [24, 25, 26]
         };
 
         // 10회 뽑기 실행
@@ -1317,7 +1438,7 @@ function updateInventoryDisplay() {
             }
             
             // 가장 높은 등급 찾기
-            const gradeOrder = ['일반', '희귀', '에픽', '전설', '유니크', '스페셜'];
+            const gradeOrder = ['일반', '희귀', '에픽', '전설', '유니크', '스페셜', '이벤트'];
             let highestGrade = '일반';
             let highestGradeClass = 'grade-common';
             
@@ -1387,6 +1508,17 @@ function updateInventoryDisplay() {
                         { name: '전설', class: 'grade-legendary', probability: 0.1 },
                         { name: '유니크', class: 'grade-unique', probability: 0.05 },
                         { name: '스페셜', class: 'grade-special', probability: 0.01 }
+                    ];
+                    break;
+                case 'event':
+                    grades = [
+                        { name: '일반', class: 'grade-common', probability: 0.3 },
+                        { name: '희귀', class: 'grade-rare', probability: 0.3 },
+                        { name: '에픽', class: 'grade-epic', probability: 0.22 },
+                        { name: '전설', class: 'grade-legendary', probability: 0.1 },
+                        { name: '유니크', class: 'grade-unique', probability: 0.04 },
+                        { name: '스페셜', class: 'grade-special', probability: 0.01 },
+                        { name: '이벤트', class: 'grade-event', probability: 0.01 }
                     ];
                     break;
                 default:
@@ -1770,6 +1902,72 @@ function updateInventoryDisplay() {
             }
         }
 
+
+        // 저장 가능 여부 플래그
+let allowOnlineSave = false;
+let currentUserId = null;
+let currentUserPw = null;
+
+// 온라인 저장
+async function saveGameDataOnline() {
+    if (!allowOnlineSave) return;
+
+    const saveData = {
+        points,
+        prisms,
+        inventory,
+        volumes,
+        timestamp: Date.now(),
+        password: currentUserPw // 단순 저장 (실제 서비스라면 암호화 필요)
+    };
+
+    try {
+        await db.collection("gameSaves").doc(currentUserId).set(saveData);
+        console.log("🔥 온라인 저장 성공:", currentUserId);
+    } catch (err) {
+        console.error("온라인 저장 실패:", err);
+    }
+}
+
+// 온라인 불러오기
+async function loadGameDataOnline(id, pw) {
+    try {
+        const doc = await db.collection("gameSaves").doc(id).get();
+        if (doc.exists) {
+            const data = doc.data();
+            if (data.password === pw) {
+                points = data.points || 0;
+                prisms = data.prisms || 0;
+                inventory = data.inventory || {};
+                volumes = data.volumes || {};
+                updateDisplay();
+                autoSave();
+                allowOnlineSave = true;
+                currentUserId = id;
+                currentUserPw = pw;
+                console.log("✅ 온라인 데이터 불러오기 성공");
+            } else {
+                alert("비밀번호가 일치하지 않습니다.");
+            }
+        }
+    } catch (err) {
+        console.error("온라인 불러오기 실패:", err);
+    }
+}
+
+        function applyUserCredentials() {
+    const id = document.getElementById("userIdInput").value.trim();
+    const pw = document.getElementById("userPwInput").value.trim();
+    if (!id || !pw) {
+        alert("아이디와 비밀번호를 입력하세요.");
+        return;
+    }
+    currentUserId = id;
+    currentUserPw = pw;
+    loadGameDataOnline(id, pw);
+}
+
+        
         // 로컬 저장소 관련 함수들
         function saveGameData() {
             const gameData = {
@@ -1820,7 +2018,7 @@ function updateInventoryDisplay() {
                 equippedGems = [];
                 volumes = { multi: false, chorus: false, lux: false };
                 maxSlots = 1;
-                chorus = 1;
+                chorus = 0;
                 multiple = 1;
                 window.totalLux = 0;
                 updateDisplay();
@@ -1835,8 +2033,15 @@ function updateInventoryDisplay() {
 
         // 게임 상태가 변경될 때마다 자동 저장
         function autoSave() {
-            saveGameData();
-        }
+    // 항상 로컬 저장 먼저
+   saveGameData(); 
+
+    // 온라인 저장 (아이디/비번 입력된 경우)
+    if (allowOnlineSave) {
+        saveGameDataOnline();
+    }
+}
+
 
         // 초기 화면 업데이트 및 데이터 로드
         loadGameData();
@@ -1849,11 +2054,11 @@ function updateInventoryDisplay() {
         }
                 // 패치노트 내용 (여기서 수정하면 됨!)
 const patchNoteText = `
-📅 0.0.4 알파 업데이트
-- 코드 입력 기능 추가 (프리즘/보석 지급 가능)
-- 스패셜 2종 추가
-- 0.5시즌 오픈
-- UI 일부 개선
+📅 0.0.5 알파 업데이트(2025.9.7)
+- 매크로 방지 기능 추가
+- 이벤트 보석 3종, 에픽 보석 1종 추가
+- <정제> 이벤트 광석 출현!(~9.10)
+- 업데이트 리딤 코드 : ReF5in3(신규 에픽 보석)
 `;
 
 // 버튼 이벤트
@@ -1873,8 +2078,42 @@ document.getElementById("patchNoteModal").addEventListener("click", (e) => {
         document.getElementById("patchNoteModal").classList.add("hidden");
     }
 });
+        const originalSave = saveGameData.toString();
+const originalUpdate = updateDisplay.toString();
+
+setInterval(() => {
+    if (saveGameData.toString() !== originalSave || updateDisplay.toString() !== originalUpdate) {
+        console.warn("코드 변조 감지됨!");
+        window.allowSave = false;
+    }
+}, 2000);
     </script>
 <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97a5f5ad930caa4a',t:'MTc1NzA3Nzc1Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+<script>
+  const currentBuild = document.querySelector("meta[name='build-time']").content;
 
+  async function checkUpdate() {
+    try {
+      const res = await fetch("index.html", { cache: "no-store" });
+      const text = await res.text();
+      const match = text.match(/<meta name="build-time" content="([^"]+)">/);
+      if (match && match[1] !== currentBuild) {
+        console.log("새 버전 감지됨 → 페이지 새로고침");
+        location.reload(true);
+      }
+    } catch (err) {
+      console.error("업데이트 체크 실패:", err);
+    }
+  }
+
+  // 30초마다 확인
+  setInterval(checkUpdate, 30000);
+</script>
+
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+</script>
 </body>
 </html>
