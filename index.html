@@ -840,11 +840,7 @@ const redeemCodes = {
   ReF5in3: {
     gem: [23],
     used: false,
-  },
-'refundingfree': {
-    prisms: 3000,
-    used: false,
-  },
+  }
 }
 document.getElementById('redeemCodeBtn').addEventListener('click', () => {
   const _0x5159fc = document.getElementById('codeInput').value.trim(),
@@ -2109,7 +2105,7 @@ function resetGameData() {
     showMessage('게임 데이터가 초기화되었습니다.', 'text-yellow-300'))
 }
 function autoSave() {
-  localStorage.setItem('saveData', JSON.stringify(gameData))
+  saveGameData() 
 }
 loadGameData()
 updateDisplay()
@@ -2144,6 +2140,7 @@ setInterval(() => {
 </script>
 </body>
 </html>
+
 
 
 
