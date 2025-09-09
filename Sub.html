@@ -475,16 +475,7 @@
             
             <!-- 설정 옵션들 -->
             <div class="space-y-4">
-                <div class="mt-4">
-          <label class="block text-sm font-medium">ID</label>
-          <input id="userIdInput" type="text" class="border p-2 rounded w-full" placeholder="아이디 입력">
-        </div>
-        <div class="mt-2">
-          <label class="block text-sm font-medium">PIN</label>
-          <input id="userPwInput" type="password" class="border p-2 rounded w-full" placeholder="비밀번호 입력">
-        </div>
-        <button onclick="applyUserCredentials()" class="bg-blue-500 text-white px-4 py-2 rounded">아이디/비번 적용</button>
-                <!-- 수동 저장 -->
+                                <!-- 수동 저장 -->
                 <div class="bg-white bg-opacity-5 rounded-xl p-4">
                     <h3 class="text-lg font-bold text-white mb-2">💾 게임 저장</h3>
                     <p class="text-gray-300 text-sm mb-3">게임이 자동으로 저장되지만, 수동으로도 저장할 수 있습니다.</p>
@@ -2037,9 +2028,9 @@ async function loadGameDataOnline(id, pw) {
    saveGameData(); 
 
     // 온라인 저장 (아이디/비번 입력된 경우)
-    if (allowOnlineSave) {
-        saveGameDataOnline();
-    }
+    //if (allowOnlineSave) {
+    //    saveGameDataOnline();
+    //}
 }
 
 
