@@ -2089,6 +2089,7 @@ setInterval(() => {
       const text = await res.text();
       const match = text.match(/<meta name="build-time" content="([^"]+)">/);
       if (match && match[1] !== currentBuild) {
+       autoSave();
         console.log("새 버전 감지됨 → 페이지 새로고침");
         location.reload(true);
       }
@@ -2098,7 +2099,8 @@ setInterval(() => {
   }
 
   // 30초마다 확인
-  setInterval(checkUpdate, 30000);
+  autoSave();
+  setInterval(checkUpdate, 10000);
 </script>
 
 
