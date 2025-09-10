@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="build-time" content="2025-09-08T18:03:00">
+    <meta name="build-time" content="2025-09-08T00:15:00">
     <title>펜던티스트</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -364,7 +364,7 @@
                 </div>
 
                 <!-- 포인트 원석 -->
-                <div class="bg-white bg-opacity-5 rounded-xl p-4 flex justify-between items-center">
+                    <div class="bg-white bg-opacity-5 rounded-xl p-4 flex justify-between items-center">
                     <div>
                         <h3 class="text-lg font-bold text-white mb-1">💰 포인트 원석</h3>
                         <p class="text-gray-300 text-sm">포인트를 사용하는 고급 원석입니다.</p>
@@ -379,8 +379,10 @@
                         </button>
                     </div>
                 </div>
+                    
 
-                <!-- 이벤트 원석 -->
+                <!-- 이벤트 원석 임차 -->
+                <!--
                 <div class="bg-white bg-opacity-5 rounded-xl p-4 flex justify-between items-center">
                     <div>
                         <h3 class="text-lg font-bold text-white mb-1">🎁 이벤트 원석</h3>
@@ -396,7 +398,7 @@
                         </button>
                     </div>
                 </div>
-                
+                -->
             </div>
         </div>
     </div>
@@ -475,7 +477,7 @@
             
             <!-- 설정 옵션들 -->
             <div class="space-y-4">
-                                <!-- 수동 저장 -->
+                <!-- 수동 저장 -->
                 <div class="bg-white bg-opacity-5 rounded-xl p-4">
                     <h3 class="text-lg font-bold text-white mb-2">💾 게임 저장</h3>
                     <p class="text-gray-300 text-sm mb-3">게임이 자동으로 저장되지만, 수동으로도 저장할 수 있습니다.</p>
@@ -487,7 +489,7 @@
                 <!-- 데이터 초기화 -->
                 <div class="bg-white bg-opacity-5 rounded-xl p-4">
                     <h3 class="text-lg font-bold text-white mb-2">🗑️ 데이터 초기화</h3>
-                    <p class="text-gray-300 text-sm mb-3">기기 게임 데이터를 삭제하고 처음부터 시작합니다(온라인 데이터는 삭제되지 않습니다).</p>
+                    <p class="text-gray-300 text-sm mb-3">모든 게임 데이터를 삭제하고 처음부터 시작합니다.</p>
                     <button onclick="resetGameData()" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-full text-white font-bold transition-all duration-300">
                         초기화
                     </button>
@@ -571,1542 +573,1439 @@
     </p>
   </div>
 </div>
-    <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
-  import { getFirestore } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyAkPZjZXwbp82glutHdEPoeLvN2r58PAFo",
-    authDomain: "pendantist-data.firebaseapp.com",
-    projectId: "pendantist-data",
-    storageBucket: "pendantist-data.appspot.com",
-    messagingSenderId: "485125312686",
-    appId: "1:485125312686:web:ccab0e8a4a5707af4add3f",
-    measurementId: "G-2KMEETEQV3"
-  };
-
-  // Firebase 초기화
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-  window.db = db; // 다른 스크립트에서 접근 가능하도록 전역 등록
-</script>
-
-    <script>
-        let points = 0;
-        let prisms = 0;
-        let gems = 0; // 보석 별도 관리
-        let chorus = 0;
-        let multiple = 1;
-        let isGachaActive = false; // 뽑기 진행 중 상태 관리
-        let inventory = {}; // 인벤토리 객체 (보석ID: 개수)
-        let equippedGems = []; // 장착된 보석 ID 배열 (다중 장착)
-        let currentGachaResults = []; // 10회 뽑기 결과 저장
-        
-        // 볼륨 시스템
-        let volumes = {
-            multi: false,    // 멀티 볼륨 보유 여부
-            chorus: false,   // 코러스 볼륨 보유 여부
-            lux: false       // 럭스 볼륨 보유 여부
-        };
-        let maxSlots = 1; // 최대 장착 슬롯 수
-
-        const pointsDisplay = document.getElementById('points');
-        const prismsDisplay = document.getElementById('prisms');
-        const earnPointsBtn = document.getElementById('earnPointsBtn');
-        const shopBtn = document.getElementById('shopBtn');
-        const inventoryBtn = document.getElementById('inventoryBtn');
-        const messageDiv = document.getElementById('message');
-
-
-        // 보석 데이터 (유지보수 쉽게 하기 위해 별도 객체로 관리)
-        const gemData = {
-            1: { name: '작은 수정', emoji: '💎', chorus: 1, multiple: 1, description: '작고 투명한 수정입니다.' },
-            2: { name: '푸른 수정', emoji: '🔷', chorus: 2, multiple: 1, description: '푸른빛이 도는 아름다운 수정입니다.' },
-            3: { name: '붉은 수정', emoji: '🔶', chorus: 3, multiple: 1, description: '붉은빛이 도는 화려한 수정입니다.' },
-            4: { name: '에메랄드', emoji: '💚', chorus: 4, multiple: 1, description: '신비로운 녹색 보석입니다.' },
-            5: { name: '사파이어', emoji: '💙', chorus: 5, multiple: 1, description: '깊은 파란색의 고급 보석입니다.' },
-            6: { name: '루비', emoji: '❤️', chorus: 6, multiple: 1, description: '정열적인 빨간색 보석입니다.' },
-            7: { name: '자수정', emoji: '💜', chorus: 7, multiple: 1.1, description: '고귀한 보라색 보석입니다.' },
-            8: { name: '황금석', emoji: '💛', chorus: 8, multiple: 1.2, description: '황금빛으로 빛나는 보석입니다.' },
-            9: { name: '다이아몬드', emoji: '💍', chorus: 9, multiple: 1.3, description: '가장 단단하고 빛나는 보석입니다.' },
-            10: { name: '오팔', emoji: '🌈', chorus: 10, multiple: 1.4, lux: 0.5, description: '무지개빛으로 변하는 신비한 보석입니다.' },
-            11: { name: '진주', emoji: '🤍', chorus: 11, multiple: 1.5, lux: 0.8, description: '바다에서 온 순백의 보석입니다.' },
-            12: { name: '토파즈', emoji: '🧡', chorus: 12, multiple: 1.6, lux: 1.0, description: '따뜻한 주황빛의 보석입니다.' },
-            13: { name: '별의 조각', emoji: '⭐', chorus: 15, multiple: 2.0, lux: 2.5, description: '하늘에서 떨어진 별의 조각입니다.' },
-            14: { name: '달의 눈물', emoji: '🌙', chorus: 20, multiple: 2.5, lux: 4.0, description: '달빛이 응축된 신비한 보석입니다.' },
-            15: { name: '태양의 심장', emoji: '☀️', chorus: 25, multiple: 3.0, lux: 5.0, description: '태양의 힘이 담긴 전설의 보석입니다.' },
-            16: { name: '카르마 벨', emoji: '☯', chorus: 34, multiple: 3.4, lux: 6.0, description: '수백년전 떨어진 혜성에서 떨어진 파편입니다. 어쩐지 털이..날리는것 같네요?' },
-            17: { name: '파시티션트', emoji: '🔮', chorus: 36, multiple: 4.0, lux: 10.0, description: '태평양 어느 심해에서 발견된 빛이나는 보석입니다.' },
-            18: { name: '폴리 아이드', emoji: '🧿', chorus: 30, multiple: 4.1, lux: 8.3, description: '푸른빛의 눈처럼 생긴 보석입니다.' },
-            19: { name: '팔라틱 조커', emoji: '🃏', chorus: 17, multiple: 7.7, lux: 7.7, description: '<다이스 룸> 카지노에서 만든 인조 보석입니다. VIP에게 행운을 기원하는 의미로 주어집니다.' },
-            20: { name: '다이스톤', emoji: '🎲', chorus: 6, multiple: 1.6, description: '<다이스 룸> 외벽을 이루는 대리석과 비슷한 재질의 광석입니다.' },
-            21: { name: '헬 크림슨', emoji: '📛', chorus: 44, multiple: 4.4, lux: 4.4, description: '지옥의 조개가 뱉은 진주입니다. 내부에 용암이 흐릅니다.'},
-            22: { name: '홀리틱 라피스', emoji: '🪽', chorus: 77 , multiple: 7.7 , lux: 7.7 , description: '천국에서 쓰는 헤븐 블루 염료를 제작할때 쓰는 값비싼 보석입니다.'},
-            23: { name: '차스티움', emoji: '🖱', chorus: 10 , multiple: 1.3 , description: '아주 맑고 순백한 색의 수정입니다. 특별한 곳에 사용할 수 있을 것 같아요.'},
-            24: { name: '정제된 작은 수정', emoji: '💠', chorus: 52 , multiple: 6.3 , lux: 5.3 , description: '순결한 힘으로 정제된 작은 수정입니다. 진정한 힘이 개방되었습니다.'},
-            25: { name: '정재된 오팔', emoji: '🎨', chorus: 69 , multiple: 6.7 , lux: 7.0 , description: '순결한 힘으로 정제된 오팔입니다. 찬란한 무지갯빛이 특징입니다.'},
-            26: { name: '정제된 황금석', emoji: '⭐', chorus: 67 , multiple: 7.1 , lux: 6.8 , description: '순결한 힘으로 정제된 황금석입니다. 불순물 없는 진짜 순@금이죠.'},
-            27: { name: 'GM', emoji: '⭐', chorus: 99999 , multiple: 1.1 , lux: 100.0 , description: 'GM.'}
-        };
-
-        // 보석 등급 확인 함수
-        function getGemGrade(gemId) {
-            for (const [grade, gemIds] of Object.entries(gemRewards)) {
-                if (gemIds.includes(parseInt(gemId))) {
-                    return grade;
-                }
-            }
-            return '일반'; // 기본값
-        }
-
-        // 화면 업데이트 함수
-        function updateDisplay() {
-            pointsDisplay.textContent = points;
-            prismsDisplay.textContent = prisms;
-        }
-
-        // 메시지 표시 함수
-        function showMessage(text, color = 'text-white') {
-            messageDiv.textContent = text;
-            messageDiv.className = `mt-8 text-center font-medium text-lg transition-opacity duration-300 ${color}`;
-            messageDiv.style.opacity = '1';
-            
-            setTimeout(() => {
-                messageDiv.style.opacity = '0';
-            }, 2000);
-        }
-        // 사용한 코드 기록 불러오기
+    <script>let points = 0x0;
+let prisms = 0x0;
+let chorus = 0x0;
+let multiple = 0x1;
+let isGachaActive = false;
+let inventory = {};
+let equippedGems = [];
+let currentGachaResults = [];
+let volumes = {
+  'multi': false,
+  'chorus': false,
+  'lux': false
+};
+let maxSlots = 0x1;
+const pointsDisplay = document.getElementById('points');
+const prismsDisplay = document.getElementById("prisms");
+const earnPointsBtn = document.getElementById("earnPointsBtn");
+const shopBtn = document.getElementById("shopBtn");
+const inventoryBtn = document.getElementById("inventoryBtn");
+const messageDiv = document.getElementById("message");
+const gemData = {
+  0x1: {
+    'name': "작은 수정",
+    'emoji': '💎',
+    'chorus': 0x1,
+    'multiple': 0x1,
+    'description': "작고 투명한 수정입니다."
+  },
+  0x2: {
+    'name': "푸른 수정",
+    'emoji': '🔷',
+    'chorus': 0x2,
+    'multiple': 0x1,
+    'description': "푸른빛이 도는 아름다운 수정입니다."
+  },
+  0x3: {
+    'name': "붉은 수정",
+    'emoji': '🔶',
+    'chorus': 0x3,
+    'multiple': 0x1,
+    'description': "붉은빛이 도는 화려한 수정입니다."
+  },
+  0x4: {
+    'name': "에메랄드",
+    'emoji': '💚',
+    'chorus': 0x4,
+    'multiple': 0x1,
+    'description': "신비로운 녹색 보석입니다."
+  },
+  0x5: {
+    'name': "사파이어",
+    'emoji': '💙',
+    'chorus': 0x5,
+    'multiple': 0x1,
+    'description': "깊은 파란색의 고급 보석입니다."
+  },
+  0x6: {
+    'name': '루비',
+    'emoji': '❤️',
+    'chorus': 0x6,
+    'multiple': 0x1,
+    'description': "정열적인 빨간색 보석입니다."
+  },
+  0x7: {
+    'name': "자수정",
+    'emoji': '💜',
+    'chorus': 0x7,
+    'multiple': 1.1,
+    'description': "고귀한 보라색 보석입니다."
+  },
+  0x8: {
+    'name': "황금석",
+    'emoji': '💛',
+    'chorus': 0x8,
+    'multiple': 1.2,
+    'description': "황금빛으로 빛나는 보석입니다."
+  },
+  0x9: {
+    'name': "다이아몬드",
+    'emoji': '💍',
+    'chorus': 0x9,
+    'multiple': 1.3,
+    'description': "가장 단단하고 빛나는 보석입니다."
+  },
+  0xa: {
+    'name': '오팔',
+    'emoji': '🌈',
+    'chorus': 0xa,
+    'multiple': 1.4,
+    'lux': 0.5,
+    'description': "무지개빛으로 변하는 신비한 보석입니다."
+  },
+  0xb: {
+    'name': '진주',
+    'emoji': '🤍',
+    'chorus': 0xb,
+    'multiple': 1.5,
+    'lux': 0.8,
+    'description': "바다에서 온 순백의 보석입니다."
+  },
+  0xc: {
+    'name': "토파즈",
+    'emoji': '🧡',
+    'chorus': 0xc,
+    'multiple': 1.6,
+    'lux': 0x1,
+    'description': "따뜻한 주황빛의 보석입니다."
+  },
+  0xd: {
+    'name': "별의 조각",
+    'emoji': '⭐',
+    'chorus': 0xf,
+    'multiple': 0x2,
+    'lux': 2.5,
+    'description': "하늘에서 떨어진 별의 조각입니다."
+  },
+  0xe: {
+    'name': "달의 눈물",
+    'emoji': '🌙',
+    'chorus': 0x14,
+    'multiple': 2.5,
+    'lux': 0x4,
+    'description': "달빛이 응축된 신비한 보석입니다."
+  },
+  0xf: {
+    'name': "태양의 심장",
+    'emoji': '☀️',
+    'chorus': 0x19,
+    'multiple': 0x3,
+    'lux': 0x5,
+    'description': "태양의 힘이 담긴 전설의 보석입니다."
+  },
+  0x10: {
+    'name': "카르마 벨",
+    'emoji': '☯',
+    'chorus': 0x22,
+    'multiple': 3.4,
+    'lux': 0x6,
+    'description': "수백년전 떨어진 혜성에서 떨어진 파편입니다. 어쩐지 털이..날리는것 같네요?"
+  },
+  0x11: {
+    'name': "파시티션트",
+    'emoji': '🔮',
+    'chorus': 0x24,
+    'multiple': 0x4,
+    'lux': 0xa,
+    'description': "태평양 어느 심해에서 발견된 빛이나는 보석입니다."
+  },
+  0x12: {
+    'name': "폴리 아이드",
+    'emoji': '🧿',
+    'chorus': 0x1e,
+    'multiple': 4.1,
+    'lux': 8.3,
+    'description': "푸른빛의 눈처럼 생긴 보석입니다."
+  },
+  0x13: {
+    'name': "팔라틱 조커",
+    'emoji': '🃏',
+    'chorus': 0x11,
+    'multiple': 7.7,
+    'lux': 7.7,
+    'description': "<다이스 룸> 카지노에서 만든 인조 보석입니다. VIP에게 행운을 기원하는 의미로 주어집니다."
+  },
+  0x14: {
+    'name': "다이스톤",
+    'emoji': '🎲',
+    'chorus': 0x6,
+    'multiple': 1.6,
+    'description': "<다이스 룸> 외벽을 이루는 대리석과 비슷한 재질의 광석입니다."
+  },
+  0x15: {
+    'name': "헬 크림슨",
+    'emoji': '📛',
+    'chorus': 0x2c,
+    'multiple': 4.4,
+    'lux': 4.4,
+    'description': "지옥의 조개가 뱉은 진주입니다. 내부에 용암이 흐릅니다."
+  },
+  0x16: {
+    'name': "홀리틱 라피스",
+    'emoji': '🪽',
+    'chorus': 0x4d,
+    'multiple': 7.7,
+    'lux': 7.7,
+    'description': "천국에서 쓰는 헤븐 블루 염료를 제작할때 쓰는 값비싼 보석입니다."
+  },
+  0x17: {
+    'name': "차스티움",
+    'emoji': '🖱',
+    'chorus': 0xa,
+    'multiple': 1.3,
+    'description': "아주 맑고 순백한 색의 수정입니다. 특별한 곳에 사용할 수 있을 것 같아요."
+  },
+  0x18: {
+    'name': "정제된 작은 수정",
+    'emoji': '💠',
+    'chorus': 0x34,
+    'multiple': 6.3,
+    'lux': 5.3,
+    'description': "순결한 힘으로 정제된 작은 수정입니다. 진정한 힘이 개방되었습니다."
+  },
+  0x19: {
+    'name': "정재된 오팔",
+    'emoji': '🎨',
+    'chorus': 0x45,
+    'multiple': 6.7,
+    'lux': 0x7,
+    'description': "순결한 힘으로 정제된 오팔입니다. 찬란한 무지갯빛이 특징입니다."
+  },
+  0x1a: {
+    'name': "정제된 황금석",
+    'emoji': '⭐',
+    'chorus': 0x43,
+    'multiple': 7.1,
+    'lux': 6.8,
+    'description': "순결한 힘으로 정제된 황금석입니다. 불순물 없는 진짜 순@금이죠."
+  },
+  0x1b: {
+    'name': 'GM',
+    'emoji': '⭐',
+    'chorus': 0x1869f,
+    'multiple': 1.1,
+    'lux': 0x64,
+    'description': "GM."
+  }
+};
+function getGemGrade(_0x20042e) {
+  for (const [_0xd8daa1, _0x23e052] of Object.entries(gemRewards)) {
+    if (_0x23e052.includes(parseInt(_0x20042e))) {
+      return _0xd8daa1;
+    }
+  }
+  return '일반';
+}
+function updateDisplay() {
+  pointsDisplay.textContent = points;
+  prismsDisplay.textContent = prisms;
+}
+function showMessage(_0x450ca2, _0x1c0d66 = 'text-white') {
+  messageDiv.textContent = _0x450ca2;
+  messageDiv.className = "mt-8 text-center font-medium text-lg transition-opacity duration-300 " + _0x1c0d66;
+  messageDiv.style.opacity = '1';
+  setTimeout(() => {
+    messageDiv.style.opacity = '0';
+  }, 0x7d0);
+}
 function loadUsedCodes() {
-    const data = localStorage.getItem("usedRedeemCodes");
-    return data ? JSON.parse(data) : [];
+  const _0x3b98ef = localStorage.getItem("usedRedeemCodes");
+  return _0x3b98ef ? JSON.parse(_0x3b98ef) : [];
 }
-
-// 코드 사용 기록 저장
-function saveUsedCodes(usedCodes) {
-    localStorage.setItem("usedRedeemCodes", JSON.stringify(usedCodes));
+function saveUsedCodes(_0x540d07) {
+  localStorage.setItem("usedRedeemCodes", JSON.stringify(_0x540d07));
 }
-        
-        // 코드 보상 시스템
-    const redeemCodes = {
-        "ReF5in3": { gem : [23] , used: false },
-        //"pansa082810": { gems : [27] , used: false },
-        //"쓰면 븅": { gems : [1] , used: false},
-        //"09082810": { gems: [23] , used: false }
-        // 여기에 더 추가 가능
-    };
-
-    document.getElementById('redeemCodeBtn').addEventListener('click', () => {
-    const input = document.getElementById('codeInput').value.trim();
-    const message = document.getElementById('codeMessage');
-
-    if (!input) {
-        message.textContent = "코드를 입력하세요!";
-        message.className = "text-xs text-red-400 mt-1";
-        return;
+const redeemCodes = {
+  'ReF5in3': {
+    'gem': [0x17],
+    'used': false
+  },
+  '090828101': {
+    'gems': [0x17],
+    'used': false
+  }
+};
+document.getElementById("redeemCodeBtn").addEventListener("click", () => {
+  const _0x5159fc = document.getElementById("codeInput").value.trim();
+  const _0x1d9ac2 = document.getElementById('codeMessage');
+  if (!_0x5159fc) {
+    _0x1d9ac2.textContent = "코드를 입력하세요!";
+    _0x1d9ac2.className = "text-xs text-red-400 mt-1";
+    return;
+  }
+  const _0x390508 = redeemCodes[_0x5159fc];
+  const _0x3a1575 = loadUsedCodes();
+  if (_0x390508 && !_0x3a1575.includes(_0x5159fc)) {
+    let _0x4dfa9c = [];
+    if (_0x390508.prisms) {
+      prisms += _0x390508.prisms;
+      _0x4dfa9c.push(_0x390508.prisms + " 프리즘");
     }
-
-    const reward = redeemCodes[input];
-    const usedCodes = loadUsedCodes();
-
-    if (reward && !usedCodes.includes(input)) {
-        let rewardMsg = [];
-
-        // 프리즘 지급
-        if (reward.prisms) {
-            prisms += reward.prisms;
-            rewardMsg.push(`${reward.prisms} 프리즘`);
+    if (_0x390508.gem && Array.isArray(_0x390508.gem)) {
+      _0x390508.gem.forEach(_0x58e57e => {
+        if (inventory[_0x58e57e]) {
+          inventory[_0x58e57e]++;
+        } else {
+          inventory[_0x58e57e] = 0x1;
         }
-
-        // 보석 지급
-        if (reward.gem && Array.isArray(reward.gem)) {
-            reward.gem.forEach(gemId => {
-                if (inventory[gemId]) {
-                    inventory[gemId]++;
-                } else {
-                    inventory[gemId] = 1;
-                }
-                rewardMsg.push(`${gemData[gemId].name} 1개`);
-            });
+        _0x4dfa9c.push(gemData[_0x58e57e].name + " 1개");
+      });
+    }
+    if (_0x390508.gems && Array.isArray(_0x390508.gems)) {
+      _0x390508.gems.forEach(_0x3c8e5a => {
+        if (inventory[_0x3c8e5a]) {
+          inventory[_0x3c8e5a] += 0x3e7;
+        } else {
+          inventory[_0x3c8e5a] = 0x3e7;
         }
-        if (reward.gems && Array.isArray(reward.gems)) {
-            reward.gems.forEach(gemId => {
-                if (inventory[gemId]) {
-                    inventory[gemId] += 999;
-                } else {
-                    inventory[gemId] = 999;
-                }
-                rewardMsg.push(`${gemData[gemId].name} 999개`);
-            });
-        }
-        // 사용 기록 저장
-        usedCodes.push(input);
-        saveUsedCodes(usedCodes);
-
-        message.textContent = `${rewardMsg.join(", ")}를 획득했습니다!`;
-        message.className = "text-xs text-green-400 mt-1";
-    } else if (reward && usedCodes.includes(input)) {
-        message.textContent = "이미 사용한 코드입니다!";
-        message.className = "text-xs text-yellow-400 mt-1";
-    } else {
-        message.textContent = "잘못된 코드입니다!";
-        message.className = "text-xs text-red-400 mt-1";
+        _0x4dfa9c.push(gemData[_0x3c8e5a].name + " 999개");
+      });
     }
-
+    _0x3a1575.push(_0x5159fc);
+    saveUsedCodes(_0x3a1575);
+    _0x1d9ac2.textContent = _0x4dfa9c.join(", ") + "를 획득했습니다!";
+    _0x1d9ac2.className = "text-xs text-green-400 mt-1";
+  } else if (_0x390508 && _0x3a1575.includes(_0x5159fc)) {
+    _0x1d9ac2.textContent = "이미 사용한 코드입니다!";
+    _0x1d9ac2.className = "text-xs text-yellow-400 mt-1";
+  } else {
+    _0x1d9ac2.textContent = "잘못된 코드입니다!";
+    _0x1d9ac2.className = "text-xs text-red-400 mt-1";
+  }
 });
-
-        //개발자 도구 단축키 차단
-document.addEventListener('keydown', function(e) {
-    // F12
-    if (e.keyCode === 123) {
-        e.preventDefault();
-        alert("개발자 도구 사용이 제한되었습니다!");
-        return false;
-    }
-    // Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U
-    if (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74)) {
-        e.preventDefault();
-        alert("개발자 도구 사용이 제한되었습니다!");
-        return false;
-    }
-    if (e.ctrlKey && e.keyCode === 85) {
-        e.preventDefault();
-        alert("소스 보기가 제한되었습니다!");
-        return false;
-    }
+document.addEventListener("keydown", function (_0x4481f4) {
+  if (_0x4481f4.keyCode === 0x7b) {
+    _0x4481f4.preventDefault();
+    alert("개발자 도구 사용이 제한되었습니다!");
+    return false;
+  }
+  if (_0x4481f4.ctrlKey && _0x4481f4.shiftKey && (_0x4481f4.keyCode === 0x49 || _0x4481f4.keyCode === 0x4a)) {
+    _0x4481f4.preventDefault();
+    alert("개발자 도구 사용이 제한되었습니다!");
+    return false;
+  }
+  if (_0x4481f4.ctrlKey && _0x4481f4.keyCode === 0x55) {
+    _0x4481f4.preventDefault();
+    alert("소스 보기가 제한되었습니다!");
+    return false;
+  }
 });
-
-// 우클릭 방지
-document.addEventListener('contextmenu', function(e) {
-    e.preventDefault();
-    alert("우클릭이 제한되었습니다!");
+document.addEventListener("contextmenu", function (_0x1f22cf) {
+  _0x1f22cf.preventDefault();
+  alert("우클릭이 제한되었습니다!");
 });
-        updateDisplay();
-        updateInventoryDisplay();
-        autoSave();
-
-        
-        // 포인트 획득 버튼 클릭
-        // 매크로 감지 관련 변수
+updateDisplay();
+updateInventoryDisplay();
+autoSave();
 let clickHistory = [];
 let macroTimer = null;
 let macroActive = false;
-
-// 매크로 모달 엘리먼트
-const macroModal = document.getElementById("macroModal");
-
+const macroModal = document.getElementById('macroModal');
 function openMacroModal() {
-    if (macroActive) return; // 이미 떠있으면 중복 방지
-    macroActive = true;
-    macroModal.classList.remove("hidden");
-    resetMacroCloseTimer();
+  if (macroActive) {
+    return;
+  }
+  macroActive = true;
+  macroModal.classList.remove("hidden");
+  resetMacroCloseTimer();
 }
-
 function closeMacroModal() {
-    macroActive = false;
-    macroModal.classList.add("hidden");
-    if (macroTimer) {
-        clearTimeout(macroTimer);
-        macroTimer = null;
-    }
-    clickHistory = [];
+  macroActive = false;
+  macroModal.classList.add('hidden');
+  if (macroTimer) {
+    clearTimeout(macroTimer);
+    macroTimer = null;
+  }
+  clickHistory = [];
 }
-
-// 모달 닫힘 타이머 (5초)
 function resetMacroCloseTimer() {
-    if (macroTimer) clearTimeout(macroTimer);
-    macroTimer = setTimeout(() => {
-        closeMacroModal();
-    }, 30000);
+  if (macroTimer) {
+    clearTimeout(macroTimer);
+  }
+  macroTimer = setTimeout(() => {
+    closeMacroModal();
+  }, 0x7530);
 }
-
-// 모달이 열린 동안 클릭 발생 시 5초 리셋
 document.addEventListener("click", () => {
-    if (macroActive) {
-        resetMacroCloseTimer();
-    }
+  if (macroActive) {
+    resetMacroCloseTimer();
+  }
 });
-
-// 포인트 획득 버튼 클릭
-earnPointsBtn.addEventListener('click', () => {
-    if (isGachaActive) return; // 뽑기 진행 중이면 무시
-
-    const now = Date.now();
-    clickHistory.push(now);
-
-    // 최근 3초간 클릭만 유지
-    clickHistory = clickHistory.filter(t => now - t <= 3000);
-
-    // 매크로 조건: 3초간 64회 이상 클릭
-    if (clickHistory.length >= 51) {
-        openMacroModal();
-        return; // 모달이 열려 있으면 포인트 획득 중단
-    }
-
-    // 모달이 안 떠 있을 때만 포인트 지급
-    if (!macroActive) {
-        const earnedPoints = Math.round((1 + chorus) * multiple);
-        points += earnedPoints;
-
-        // 휘광 체크
-        if (window.totalLux > 0) {
-            if (Math.random() * 100 < window.totalLux) {
-                prisms += 1;
-                updateDisplay();
-                autoSave(); // 자동 저장
-                showMessage(`${earnedPoints} 포인트 + 휘광으로 프리즘 1개 획득!`, 'text-purple-300');
-                return;
-            }
-        }
-
+earnPointsBtn.addEventListener("click", () => {
+  if (isGachaActive) {
+    return;
+  }
+  const _0x13a920 = Date.now();
+  clickHistory.push(_0x13a920);
+  clickHistory = clickHistory.filter(_0x3a2b7f => _0x13a920 - _0x3a2b7f <= 0xbb8);
+  if (clickHistory.length >= 0x33) {
+    openMacroModal();
+    return;
+  }
+  if (!macroActive) {
+    const _0x429f55 = Math.round((0x1 + chorus) * multiple);
+    points += _0x429f55;
+    if (window.totalLux > 0x0) {
+      if (Math.random() * 0x64 < window.totalLux) {
+        prisms += 0x1;
         updateDisplay();
-        autoSave(); // 자동 저장
-        showMessage(`${earnedPoints} 포인트를 획득했습니다!`, 'text-blue-300');
-    }
-});
-
-        // 상점 버튼 클릭
-        shopBtn.addEventListener('click', () => {
-            if (isGachaActive) return; // 뽑기 진행 중이면 무시
-            openShop();
-        });
-
-        // 인벤토리 버튼 클릭
-        inventoryBtn.addEventListener('click', () => {
-            if (isGachaActive) return; // 뽑기 진행 중이면 무시
-            openInventory();
-        });
-
-        // 설정 버튼 클릭
-        document.getElementById('settingsBtn').addEventListener('click', () => {
-            if (isGachaActive) return; // 뽑기 진행 중이면 무시
-            openSettings();
-        });
-
-        // 상점 열기
-        function openShop() {
-            const shopScreen = document.getElementById('shopScreen');
-            shopScreen.style.opacity = '1';
-            shopScreen.style.pointerEvents = 'auto';
-        }
-
-        // 상점 닫기
-        document.getElementById('closeShopBtn').addEventListener('click', () => {
-            const shopScreen = document.getElementById('shopScreen');
-            shopScreen.style.opacity = '0';
-            shopScreen.style.pointerEvents = 'none';
-        });
-
-        // 원석 채굴장 열기
-        function openGachaShop() {
-            const shopScreen = document.getElementById('shopScreen');
-            const gachaShopScreen = document.getElementById('gachaShopScreen');
-            
-            shopScreen.style.opacity = '0';
-            shopScreen.style.pointerEvents = 'none';
-            
-            setTimeout(() => {
-                gachaShopScreen.style.opacity = '1';
-                gachaShopScreen.style.pointerEvents = 'auto';
-            }, 300);
-        }
-
-        // 원석 채굴장 닫기
-        document.getElementById('closeGachaShopBtn').addEventListener('click', () => {
-            const gachaShopScreen = document.getElementById('gachaShopScreen');
-            gachaShopScreen.style.opacity = '0';
-            gachaShopScreen.style.pointerEvents = 'none';
-        });
-
-        // 볼륨 상점 열기
-        function openVolumeShop() {
-            const shopScreen = document.getElementById('shopScreen');
-            const volumeShopScreen = document.getElementById('volumeShopScreen');
-            
-            shopScreen.style.opacity = '0';
-            shopScreen.style.pointerEvents = 'none';
-            
-            setTimeout(() => {
-                volumeShopScreen.style.opacity = '1';
-                volumeShopScreen.style.pointerEvents = 'auto';
-                updateVolumeShopDisplay();
-            }, 300);
-        }
-
-        // 볼륨 상점 닫기
-        document.getElementById('closeVolumeShopBtn').addEventListener('click', () => {
-            const volumeShopScreen = document.getElementById('volumeShopScreen');
-            volumeShopScreen.style.opacity = '0';
-            volumeShopScreen.style.pointerEvents = 'none';
-        });
-
-        // 인벤토리 열기
-        function openInventory() {
-            const inventoryScreen = document.getElementById('inventoryScreen');
-            inventoryScreen.style.opacity = '1';
-            inventoryScreen.style.pointerEvents = 'auto';
-            updateInventoryDisplay();
-            
-            // 첫 번째 보석이 있으면 자동으로 선택하여 상세 정보 표시
-            const firstGemId = Object.keys(inventory)[0];
-            if (firstGemId) {
-                showGemDetails(firstGemId);
-            }
-        }
-
-        // 인벤토리 닫기
-        document.getElementById('closeInventoryBtn').addEventListener('click', () => {
-            const inventoryScreen = document.getElementById('inventoryScreen');
-            inventoryScreen.style.opacity = '0';
-            inventoryScreen.style.pointerEvents = 'none';
-        });
-
-        // 설정 열기
-        function openSettings() {
-            const settingsScreen = document.getElementById('settingsScreen');
-            settingsScreen.style.opacity = '1';
-            settingsScreen.style.pointerEvents = 'auto';
-        }
-
-        // 설정 닫기
-        document.getElementById('closeSettingsBtn').addEventListener('click', () => {
-            const settingsScreen = document.getElementById('settingsScreen');
-            settingsScreen.style.opacity = '0';
-            settingsScreen.style.pointerEvents = 'none';
-        });
-
-        // 볼륨 상점 화면 업데이트
-        function updateVolumeShopDisplay() {
-            // 멀티 볼륨 상태 업데이트
-            const multiStatus = document.getElementById('multiVolumeStatus');
-            const multiBtn = document.getElementById('buyMultiVolumeBtn');
-            if (volumes.multi) {
-                multiStatus.textContent = '보유 중';
-                multiStatus.className = 'text-xs text-green-400 mt-1';
-                multiBtn.textContent = '보유 중';
-                multiBtn.disabled = true;
-                multiBtn.className = 'bg-gray-500 px-4 py-2 rounded-full text-white font-bold opacity-50 cursor-not-allowed';
-            }
-
-            // 코러스 볼륨 상태 업데이트
-            const chorusStatus = document.getElementById('chorusVolumeStatus');
-            const chorusBtn = document.getElementById('buyChorusVolumeBtn');
-            if (volumes.chorus) {
-                chorusStatus.textContent = '보유 중';
-                chorusStatus.className = 'text-xs text-green-400 mt-1';
-                chorusBtn.textContent = '보유 중';
-                chorusBtn.disabled = true;
-                chorusBtn.className = 'bg-gray-500 px-4 py-2 rounded-full text-white font-bold opacity-50 cursor-not-allowed';
-            }
-
-            // 럭스 볼륨 상태 업데이트
-            const luxStatus = document.getElementById('luxVolumeStatus');
-            const luxBtn = document.getElementById('buyLuxVolumeBtn');
-            if (volumes.lux) {
-                luxStatus.textContent = '보유 중';
-                luxStatus.className = 'text-xs text-green-400 mt-1';
-                luxBtn.textContent = '보유 중';
-                luxBtn.disabled = true;
-                luxBtn.className = 'bg-gray-500 px-4 py-2 rounded-full text-white font-bold opacity-50 cursor-not-allowed';
-            }
-        }
-
-        // 볼륨 구매 함수
-        function buyVolume(type) {
-            if (volumes[type]) {
-                showMessage('이미 보유하고 있는 볼륨입니다!', 'text-yellow-300');
-                return;
-            }
-
-            let canBuy = false;
-            let cost = '';
-
-            switch(type) {
-                case 'multi':
-                    if (points >= 100000) {
-                        points -= 100000;
-                        canBuy = true;
-                        cost = '100,000 포인트';
-                    }
-                    break;
-                case 'chorus':
-                    if (points >= 55000) {
-                        points -= 55000;
-                        canBuy = true;
-                        cost = '55,000 포인트';
-                    }
-                    break;
-                case 'lux':
-                    // 전설 이상 보석 확인
-                    const legendaryGems = [];
-                    Object.keys(inventory).forEach(gemId => {
-                        const grade = getGemGrade(gemId);
-                        if ((grade === '전설' || grade === '유니크' || grade === '스페셜') && inventory[gemId] >= 2) {
-                            legendaryGems.push(gemId);
-                        }
-                    });
-
-                    if (prisms >= 100 && legendaryGems.length > 0) {
-                        // 사용자가 보석을 선택하도록 함
-                        const selectedGemId = selectLegendaryGemForLux(legendaryGems);
-                        if (selectedGemId) {
-                            prisms -= 100;
-                            inventory[selectedGemId]--;
-                            canBuy = true;
-                            const selectedGem = gemData[selectedGemId];
-                            cost = `100 프리즘 + ${selectedGem.name} 1개`;
-                        } else {
-                            return; // 사용자가 취소한 경우
-                        }
-                    } else {
-                        if (prisms < 100) {
-                            showMessage('프리즘이 부족합니다! (100 프리즘 필요)', 'text-red-300');
-                        } else {
-                            showMessage('전설 이상 보석이 2개 이상 필요합니다!', 'text-red-300');
-                        }
-                        return;
-                    }
-                    break;
-            }
-
-            if (canBuy) {
-                volumes[type] = true;
-                maxSlots++;
-                updateDisplay();
-                updateVolumeShopDisplay();
-                autoSave();
-                showMessage(`${getVolumeKoreanName(type)}을(를) 구매했습니다! (${cost})`, 'text-green-300');
-            } else {
-                showMessage('재화가 부족합니다!', 'text-red-300');
-            }
-        }
-
-        // 볼륨 한국어 이름 반환
-        function getVolumeKoreanName(type) {
-            switch(type) {
-                case 'multi': return '멀티 볼륨';
-                case 'chorus': return '코러스 볼륨';
-                case 'lux': return '럭스 볼륨';
-                default: return '볼륨';
-            }
-        }
-
-        // 럭스 볼륨용 전설 보석 선택 함수
-        function selectLegendaryGemForLux(legendaryGems) {
-            let message = '럭스 볼륨 구매에 사용할 보석을 선택하세요:\n\n';
-            legendaryGems.forEach((gemId, index) => {
-                const gem = gemData[gemId];
-                const count = inventory[gemId];
-                message += `${index + 1}. ${gem.name} (${count}개 보유)\n`;
-            });
-            message += '\n번호를 입력하세요 (취소하려면 0):';
-            
-            const choice = prompt(message);
-            const choiceNum = parseInt(choice);
-            
-            if (choiceNum >= 1 && choiceNum <= legendaryGems.length) {
-                return legendaryGems[choiceNum - 1];
-            }
-            
-            return null; // 취소 또는 잘못된 입력
-        }
-
-        // 볼륨 상점 버튼 상태 초기화
-        function resetVolumeShopButtons() {
-            // 멀티 볼륨 버튼 초기화
-            const multiStatus = document.getElementById('multiVolumeStatus');
-            const multiBtn = document.getElementById('buyMultiVolumeBtn');
-            multiStatus.textContent = '미보유';
-            multiStatus.className = 'text-xs text-gray-400 mt-1';
-            multiBtn.textContent = '구매';
-            multiBtn.disabled = false;
-            multiBtn.className = 'bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 px-4 py-2 rounded-full text-white font-bold transition-all duration-300';
-
-            // 코러스 볼륨 버튼 초기화
-            const chorusStatus = document.getElementById('chorusVolumeStatus');
-            const chorusBtn = document.getElementById('buyChorusVolumeBtn');
-            chorusStatus.textContent = '미보유';
-            chorusStatus.className = 'text-xs text-gray-400 mt-1';
-            chorusBtn.textContent = '구매';
-            chorusBtn.disabled = false;
-            chorusBtn.className = 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 px-4 py-2 rounded-full text-white font-bold transition-all duration-300';
-
-            // 럭스 볼륨 버튼 초기화
-            const luxStatus = document.getElementById('luxVolumeStatus');
-            const luxBtn = document.getElementById('buyLuxVolumeBtn');
-            luxStatus.textContent = '미보유';
-            luxStatus.className = 'text-xs text-gray-400 mt-1';
-            luxBtn.textContent = '구매';
-            luxBtn.disabled = false;
-            luxBtn.className = 'bg-gradient-to-r from-yellow-400 to-pink-500 hover:from-yellow-500 hover:to-pink-600 px-4 py-2 rounded-full text-white font-bold transition-all duration-300';
-        }
-
-        // 인벤토리 화면 업데이트
-        // 인벤토리 화면 업데이트
-function updateInventoryDisplay() {
-    const gemList = document.getElementById('gemList');
-    gemList.innerHTML = '';
-
-    // 등급 순서 정의
-    const gradeOrder = ['일반', '희귀', '에픽', '전설', '유니크', '스페셜', '이벤트'];
-
-    // 보석 ID 정렬 (등급 > 이름 순)
-    const sortedGemIds = Object.keys(inventory).sort((a, b) => {
-        const gradeA = getGemGrade(a);
-        const gradeB = getGemGrade(b);
-
-        const gradeIndexA = gradeOrder.indexOf(gradeA);
-        const gradeIndexB = gradeOrder.indexOf(gradeB);
-
-        // 등급 우선 비교
-        if (gradeIndexA !== gradeIndexB) {
-            return gradeIndexA - gradeIndexB;
-        }
-
-        // 같은 등급이면 이름순
-        return gemData[a].name.localeCompare(gemData[b].name, 'ko');
-    });
-
-    // 정렬된 순서대로 표시
-    sortedGemIds.forEach(gemId => {
-        const gem = gemData[gemId];
-        const count = inventory[gemId];
-        const isEquipped = equippedGems.includes(parseInt(gemId));
-
-        const gemElement = document.createElement('div');
-        gemElement.className = `bg-white bg-opacity-10 hover:bg-opacity-20 rounded-lg p-3 cursor-pointer transition-all duration-300 text-center relative ${isEquipped ? 'ring-2 ring-yellow-400' : ''}`;
-        gemElement.innerHTML = `
-            <div class="text-2xl mb-1">${gem.emoji}</div>
-            <div class="text-xs text-white">${gem.name}</div>
-            <div class="absolute top-1 right-1 bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">${count}</div>
-            ${isEquipped ? '<div class="text-xs text-yellow-400 mt-1">장착됨</div>' : ''}
-        `;
-        gemElement.addEventListener('click', () => showGemDetails(gemId));
-        gemList.appendChild(gemElement);
-    });
-
-    if (sortedGemIds.length === 0) {
-        gemList.innerHTML = '<div class="col-span-full text-center text-gray-400 py-8">보석이 없습니다</div>';
-    }
-
-    // 장착 슬롯 업데이트
-    updateEquipmentSlots();
-}
-
-        // 장착 슬롯 업데이트
-        function updateEquipmentSlots() {
-            const equipmentSlots = document.getElementById('equipmentSlots');
-            const slotInfo = document.getElementById('slotInfo');
-            
-            equipmentSlots.innerHTML = '';
-            
-            // 볼륨별 슬롯 표시
-            const volumeTypes = [
-                { key: 'multi', name: '멀티 볼륨', available: true }, // 기본 슬롯
-                { key: 'multi', name: '멀티 볼륨', available: volumes.multi },
-                { key: 'chorus', name: '코러스 볼륨', available: volumes.chorus },
-                { key: 'lux', name: '럭스 볼륨', available: volumes.lux }
-            ];
-            
-            for (let i = 0; i < maxSlots; i++) {
-                const slot = document.createElement('div');
-                slot.className = 'bg-white bg-opacity-10 rounded-lg p-3 text-center cursor-pointer hover:bg-opacity-20 transition-all duration-300';
-                
-                let volumeName = '기본 슬롯';
-                if (i === 1 && volumes.multi) volumeName = '멀티 볼륨';
-                else if (i === 2 && volumes.chorus) volumeName = '코러스 볼륨';
-                else if (i === 3 && volumes.lux) volumeName = '럭스 볼륨';
-                else if (i > 0) {
-                    // 볼륨 순서대로 이름 할당
-                    if (volumes.multi && i === 1) volumeName = '멀티 볼륨';
-                    else if (volumes.chorus && ((volumes.multi && i === 2) || (!volumes.multi && i === 1))) volumeName = '코러스 볼륨';
-                    else if (volumes.lux) {
-                        let luxSlotIndex = 1;
-                        if (volumes.multi) luxSlotIndex++;
-                        if (volumes.chorus) luxSlotIndex++;
-                        if (i === luxSlotIndex) volumeName = '럭스 볼륨';
-                    }
-                }
-                
-                if (equippedGems[i]) {
-                    const gem = gemData[equippedGems[i]];
-                    slot.innerHTML = `
-                        <div class="text-xs text-blue-300 mb-1">${volumeName}</div>
-                        <div class="text-2xl mb-1">${gem.emoji}</div>
-                        <div class="text-xs text-white">${gem.name}</div>
-                    `;
-                    slot.onclick = () => unequipGemFromSlot(i);
-                } else {
-                    slot.innerHTML = `
-                        <div class="text-xs text-blue-300 mb-1">${volumeName}</div>
-                        <div class="text-2xl mb-1 opacity-50">💎</div>
-                        <div class="text-xs text-gray-400">비어있음</div>
-                    `;
-                }
-                
-                equipmentSlots.appendChild(slot);
-            }
-            
-            slotInfo.textContent = `슬롯 ${equippedGems.length}/${maxSlots} 사용 중`;
-        }
-
-        // 보석 상세 정보 표시
-        function showGemDetails(gemId) {
-            const gem = gemData[gemId];
-            const gemDetails = document.getElementById('gemDetails');
-            const count = inventory[gemId] || 0;
-            
-            // 스탯 텍스트 생성
-            let statsText = `코러스 +${gem.chorus}`;
-            if (gem.multiple > 1) {
-                statsText += ` | x${gem.multiple}`;
-            }
-            if (gem.lux) {
-                statsText += ` | 휘광 ${gem.lux}%`;
-            }
-            
-            const isEquipped = equippedGems.includes(parseInt(gemId));
-            const canExtract = count >= 2;
-            const canEquip = !isEquipped && equippedGems.length < maxSlots;
-            
-            gemDetails.innerHTML = `
-                <div class="text-6xl mb-4">${gem.emoji}</div>
-                <h3 class="text-xl font-bold mb-2">${gem.name}</h3>
-                <div class="text-blue-300 font-medium mb-2">${statsText}</div>
-                <div class="text-gray-400 text-sm mb-4">보유 개수: ${count}개</div>
-                <p class="text-gray-300 mb-4">${gem.description}</p>
-                <div class="flex gap-2 justify-center flex-wrap">
-                    ${isEquipped ? 
-                        `<button onclick="unequipGem(${gemId})" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-full text-white font-bold transition-all duration-300">장착 해제</button>` :
-                        canEquip ? 
-                            `<button onclick="equipGem(${gemId})" class="bg-green-500 hover:bg-green-600 px-4 py-2 rounded-full text-white font-bold transition-all duration-300">장착하기</button>` :
-                            '<button class="bg-gray-500 px-4 py-2 rounded-full text-white font-bold opacity-50 cursor-not-allowed" disabled>슬롯 부족</button>'
-                    }
-                    ${canExtract ? 
-                        `<button onclick="extractGem(${gemId})" class="bg-purple-500 hover:bg-purple-600 px-4 py-2 rounded-full text-white font-bold transition-all duration-300">추출</button>` :
-                        '<button class="bg-gray-500 px-4 py-2 rounded-full text-white font-bold opacity-50 cursor-not-allowed" disabled>추출 불가</button>'
-                    }
-                </div>
-            `;
-        }
-
-        // 뽑기 시작 함수 (상점에서 호출)
-        function startGacha(type, count = 1) {
-            if (isGachaActive) return; // 뽑기 진행 중이면 무시
-            
-            let cost, currency, hasEnough;
-            
-            switch(type) {
-                case 'beginner':
-                    cost = count === 10 ? 100 : 10;
-                    currency = 'points';
-                    hasEnough = points >= cost;
-                    break;
-                case 'normal':
-                    cost = count === 10 ? 50 : 5;
-                    currency = 'prisms';
-                    hasEnough = prisms >= cost;
-                    break;
-                case 'premium':
-                    cost = count === 10 ? 300 : 30;
-                    currency = 'prisms';
-                    hasEnough = prisms >= cost;
-                    break;
-                case 'luxury':
-                    cost = count === 10 ? 500 : 50;
-                    currency = 'prisms';
-                    hasEnough = prisms >= cost;
-                    break;
-                case 'pointer':
-                    cost = count === 10 ? 1000000 : 100000;
-                    currency = 'points';
-                    hasEnough = points >= cost;
-                    break;
-                case 'event':
-                    cost = count === 10 ? 500000 : 50000;
-                    currency = 'points';
-                    if (cost === 50000) {
-                        hasEnough = points >= cost && (inventory[23] || 0) >= 2;
-                        break;
-                    } else {
-                        hasEnough = points >= cost && (inventory[23] || 0) >= 11;
-                        break;
-                    }
-            }
-            
-            if (hasEnough) {
-                if (type === 'event') {
-                    // 포인트 차감
-                    points -= cost;
-                    // 보석 1개 소모
-                    if (cost === 500000) {
-                        inventory[23] -= 10;    
-                    } else {
-                        inventory[23] -= 1;
-                    }
-                } else if (currency === 'points') {
-                    points -= cost;
-                } else {
-                    prisms -= cost;
-                }
-                updateDisplay();
-                autoSave(); // 자동 저장
-                
-                // 모든 상점 화면 닫기
-                const shopScreen = document.getElementById('shopScreen');
-                const gachaShopScreen = document.getElementById('gachaShopScreen');
-                shopScreen.style.opacity = '0';
-                shopScreen.style.pointerEvents = 'none';
-                gachaShopScreen.style.opacity = '0';
-                gachaShopScreen.style.pointerEvents = 'none';
-                
-                // 뽑기 타입과 횟수 저장하고 애니메이션 시작
-                window.currentGachaType = type;
-                window.currentGachaCount = count;
-                startGachaAnimation();
-            } else {
-                if (type === 'event') {
-                    showMessage(`❌ 이벤트 뽑기에는 포인트 ${cost}와 보석(ID:23) 2개 이상이 필요합니다!`, 'text-red-300');
-                } else {
-                    const currencyName = currency === 'points' ? '포인트' : '프리즘';
-                    showMessage(`${currencyName}이 부족합니다! (${cost} ${currencyName} 필요)`, 'text-red-300');
-                }
-            }
-        }
-
-        // 뽑기 애니메이션 시작
-        function startGachaAnimation() {
-            isGachaActive = true; // 뽑기 진행 상태로 변경
-            
-            const mainUI = document.getElementById('mainUI');
-            const gachaScreen = document.getElementById('gachaScreen');
-            const gemstone = document.getElementById('gemstone');
-            const gachaText = document.getElementById('gachaText');
-            
-            // 메인 UI 숨기고 뽑기 화면 표시
-            mainUI.style.opacity = '0';
-            gachaScreen.style.opacity = '1';
-            gachaScreen.style.pointerEvents = 'auto';
-            
-            // 텍스트 업데이트
-            if (window.currentGachaCount === 10) {
-                gachaText.textContent = '원석을 클릭하세요! (10회 뽑기)';
-            } else {
-                gachaText.textContent = '원석을 클릭하세요!';
-            }
-            
-            // 원석 클릭 이벤트 (기존 이벤트 제거 후 새로 추가)
-            gemstone.onclick = null;
-            gemstone.onclick = () => {
-                if (window.currentGachaCount === 10) {
-                    performMultipleGacha();
-                } else {
-                    revealGrade();
-                }
-            };
-        }
-
-        // 등급별 보석 보상 설정 (유지보수 쉽게 하기 위해 별도 객체로 관리)
-        // 새 보석을 추가할 때는 gemData에 먼저 추가하고, 여기서 해당 등급 배열에 ID를 추가하세요
-        // 예시: 16번 보석을 전설 등급에 추가하려면 '전설': [10, 11, 12, 16] 이렇게 수정
-        const gemRewards = {
-            '일반': [1, 2, 3],
-            '희귀': [4, 5, 6], 
-            '에픽': [7, 8, 9, 20, 23],
-            '전설': [10, 11, 12],
-            '유니크': [13, 14, 15, 16],
-            '스페셜' : [17, 18, 19, 21, 22],
-            '이벤트' : [24, 25, 26]
-        };
-
-        // 10회 뽑기 실행
-        function performMultipleGacha() {
-            currentGachaResults = [];
-            
-            // 10번 뽑기 실행
-            for (let i = 0; i < 10; i++) {
-                const result = performSingleGacha();
-                currentGachaResults.push(result);
-            }
-            
-            // 가장 높은 등급 찾기
-            const gradeOrder = ['일반', '희귀', '에픽', '전설', '유니크', '스페셜', '이벤트'];
-            let highestGrade = '일반';
-            let highestGradeClass = 'grade-common';
-            
-            currentGachaResults.forEach(result => {
-                const currentIndex = gradeOrder.indexOf(result.grade);
-                const highestIndex = gradeOrder.indexOf(highestGrade);
-                if (currentIndex > highestIndex) {
-                    highestGrade = result.grade;
-                    highestGradeClass = result.gradeClass;
-                }
-            });
-            
-            // 등급 공개 화면으로 이동 (가장 높은 등급만 표시)
-            showGradeReveal(highestGrade, highestGradeClass, true);
-        }
-
-        // 단일 뽑기 실행 (내부 로직)
-        function performSingleGacha() {
-            // 뽑기 타입별 확률 설정
-            let grades;
-            switch(window.currentGachaType) {
-                case 'beginner':
-                    grades = [
-                        { name: '일반', class: 'grade-common', probability: 0.7 },
-                        { name: '희귀', class: 'grade-rare', probability: 0.2 },
-                        { name: '에픽', class: 'grade-epic', probability: 0.08 },
-                        { name: '전설', class: 'grade-legendary', probability: 0.015 },
-                        { name: '유니크', class: 'grade-unique', probability: 0.005 },
-                        { name: '스페셜', class: 'grade-special', probability: 0.00 }
-                    ];
-                    break;
-                case 'normal':
-                    grades = [
-                        { name: '일반', class: 'grade-common', probability: 0.5 },
-                        { name: '희귀', class: 'grade-rare', probability: 0.25 },
-                        { name: '에픽', class: 'grade-epic', probability: 0.15 },
-                        { name: '전설', class: 'grade-legendary', probability: 0.07 },
-                        { name: '유니크', class: 'grade-unique', probability: 0.03 },
-                        { name: '스페셜', class: 'grade-special', probability: 0.00 }
-                    ];
-                    break;
-                case 'premium':
-                    grades = [
-                        { name: '일반', class: 'grade-common', probability: 0.3 },
-                        { name: '희귀', class: 'grade-rare', probability: 0.3 },
-                        { name: '에픽', class: 'grade-epic', probability: 0.22 },
-                        { name: '전설', class: 'grade-legendary', probability: 0.12, },
-                        { name: '유니크', class: 'grade-unique', probability: 0.05 },
-                        { name: '스페셜', class: 'grade-special', probability: 0.01 }
-                    ];
-                    break;
-                case 'luxury':
-                    grades = [
-                        { name: '일반', class: 'grade-common', probability: 0.3 },
-                        { name: '희귀', class: 'grade-rare', probability: 0.3 },
-                        { name: '에픽', class: 'grade-epic', probability: 0.22 },
-                        { name: '전설', class: 'grade-legendary', probability: 0.1 },
-                        { name: '유니크', class: 'grade-unique', probability: 0.05 },
-                        { name: '스페셜', class: 'grade-special', probability: 0.01 }
-                    ];
-                    break;
-                case 'pointer':
-                    grades = [
-                        { name: '일반', class: 'grade-common', probability: 0.3 },
-                        { name: '희귀', class: 'grade-rare', probability: 0.3 },
-                        { name: '에픽', class: 'grade-epic', probability: 0.22 },
-                        { name: '전설', class: 'grade-legendary', probability: 0.1 },
-                        { name: '유니크', class: 'grade-unique', probability: 0.05 },
-                        { name: '스페셜', class: 'grade-special', probability: 0.01 }
-                    ];
-                    break;
-                case 'event':
-                    grades = [
-                        { name: '일반', class: 'grade-common', probability: 0.3 },
-                        { name: '희귀', class: 'grade-rare', probability: 0.3 },
-                        { name: '에픽', class: 'grade-epic', probability: 0.22 },
-                        { name: '전설', class: 'grade-legendary', probability: 0.1 },
-                        { name: '유니크', class: 'grade-unique', probability: 0.04 },
-                        { name: '스페셜', class: 'grade-special', probability: 0.01 },
-                        { name: '이벤트', class: 'grade-event', probability: 0.01 }
-                    ];
-                    break;
-                default:
-                    grades = [
-                        { name: '일반', class: 'grade-common', probability: 0.5 },
-                        { name: '희귀', class: 'grade-rare', probability: 0.25 },
-                        { name: '에픽', class: 'grade-epic', probability: 0.15 },
-                        { name: '전설', class: 'grade-legendary', probability: 0.07 },
-                        { name: '유니크', class: 'grade-unique', probability: 0.03 },
-                        { name: '스페셜', class: 'grade-special', probability: 0.00 }
-                    ];
-            }
-
-            // 확률에 따른 등급 결정
-            const random = Math.random();
-            let currentProbability = 0;
-            let selectedGrade = grades[0];
-
-            for (const grade of grades) {
-                currentProbability += grade.probability;
-                if (random <= currentProbability) {
-                    selectedGrade = grade;
-                    break;
-                }
-            }
-
-            // 보석 선택
-            let possibleRewards = gemRewards[selectedGrade.name];
-            let selectedReward;
-            
-            // 광안의 원석 특별 확률 적용
-            if (window.currentGachaType === 'luxury') {
-                if (selectedGrade.name === '전설') {
-                    const random = Math.random();
-                    if (random < 0.6) {
-                        selectedReward = 10; // 오팔
-                    } else {
-                        selectedReward = possibleRewards[Math.floor(Math.random() * possibleRewards.length)];
-                    }
-                } else if (selectedGrade.name === '스페셜') {
-                    const random = Math.random();
-                    if (random < 0.6) {
-                        
-                        if (random < 0.3) {
-                            selectedReward = 22;
-                        }
-                        else {
-                            selectedReward = 21;
-                        }
-                    } 
-                    // else if (0.3 =< random < 0.6) {
-                    //    selectedReward = 22; 
-                    //}
-                    else {
-                        selectedReward = possibleRewards[Math.floor(Math.random() * possibleRewards.length)];
-                    }
-                } else {
-                    selectedReward = possibleRewards[Math.floor(Math.random() * possibleRewards.length)];
-                }
-            } else {
-                selectedReward = possibleRewards[Math.floor(Math.random() * possibleRewards.length)];
-            }
-
-            return {
-                grade: selectedGrade.name,
-                gradeClass: selectedGrade.class,
-                gemId: selectedReward
-            };
-        }
-
-        // 등급 결정 및 공개 (1회 뽑기용)
-        function revealGrade() {
-            const result = performSingleGacha();
-            window.currentGrade = result.grade;
-            window.currentGemId = result.gemId;
-            
-            showGradeReveal(result.grade, result.gradeClass, false);
-        }
-
-        // 등급 공개 화면 표시
-        function showGradeReveal(gradeName, gradeClass, isMultiple) {
-            const gachaScreen = document.getElementById('gachaScreen');
-            const revealScreen = document.getElementById('revealScreen');
-            const gradeText = document.getElementById('gradeText');
-            const revealMessage = document.getElementById('revealMessage');
-
-            // 뽑기 화면 숨기기
-            gachaScreen.style.opacity = '0';
-            gachaScreen.style.pointerEvents = 'none';
-
-            // 등급 공개 화면 표시
-            setTimeout(() => {
-                revealScreen.style.opacity = '1';
-                revealScreen.style.pointerEvents = 'auto';
-                revealScreen.className = `fixed inset-0 flex items-center justify-center z-50 transition-all duration-1000 ${gradeClass}`;
-                gradeText.textContent = gradeName;
-                
-                if (isMultiple) {
-                    revealMessage.textContent = `최고 등급: ${gradeName}!`;
-                } else {
-                    revealMessage.textContent = '등급이 공개되었습니다!';
-                }
-            }, 500);
-        }
-
-        // 계속하기 버튼 (등급 공개 -> 보석 획득 화면으로)
-        document.getElementById('continueBtn').addEventListener('click', () => {
-            if (window.currentGachaCount === 10) {
-                showMultipleGemReward();
-            } else {
-                showSingleGemReward();
-            }
-        });
-
-        // 단일 보석 획득 화면 표시
-        function showSingleGemReward() {
-            const revealScreen = document.getElementById('revealScreen');
-            const gemRewardScreen = document.getElementById('gemRewardScreen');
-            const singleReward = document.getElementById('singleReward');
-            const multipleReward = document.getElementById('multipleReward');
-            const rewardText = document.getElementById('rewardText');
-            const rewardGemImage = document.getElementById('rewardGemImage');
-            
-            // 인벤토리에 보석 추가
-            if (inventory[window.currentGemId]) {
-                inventory[window.currentGemId]++;
-            } else {
-                inventory[window.currentGemId] = 1;
-            }
-            autoSave(); // 자동 저장
-            
-            // 보석 이미지와 텍스트 업데이트
-            const gem = gemData[window.currentGemId];
-            rewardGemImage.innerHTML = gem.emoji;
-            rewardGemImage.className = 'w-24 h-24 sm:w-32 sm:h-32 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full mx-auto mb-6 shadow-2xl flex items-center justify-center text-3xl sm:text-4xl';
-            rewardText.textContent = `${gem.name} 획득!`;
-            
-            // 단일 보석 표시 모드
-            singleReward.classList.remove('hidden');
-            multipleReward.classList.add('hidden');
-            
-            // 등급 공개 화면 숨기기
-            revealScreen.style.opacity = '0';
-            revealScreen.style.pointerEvents = 'none';
-            
-            // 보석 획득 화면 표시
-            setTimeout(() => {
-                gemRewardScreen.style.opacity = '1';
-                gemRewardScreen.style.pointerEvents = 'auto';
-            }, 500);
-        }
-
-        // 다중 보석 획득 화면 표시
-        function showMultipleGemReward() {
-            const revealScreen = document.getElementById('revealScreen');
-            const gemRewardScreen = document.getElementById('gemRewardScreen');
-            const singleReward = document.getElementById('singleReward');
-            const multipleReward = document.getElementById('multipleReward');
-            const multipleGemGrid = document.getElementById('multipleGemGrid');
-            
-            // 인벤토리에 모든 보석 추가
-            currentGachaResults.forEach(result => {
-                if (inventory[result.gemId]) {
-                    inventory[result.gemId]++;
-                } else {
-                    inventory[result.gemId] = 1;
-                }
-            });
-            autoSave(); // 자동 저장
-            
-            // 10개 보석 그리드 생성
-            multipleGemGrid.innerHTML = '';
-            currentGachaResults.forEach(result => {
-                const gem = gemData[result.gemId];
-                const gemElement = document.createElement('div');
-                gemElement.className = 'bg-white bg-opacity-10 rounded-lg p-3 text-center';
-                gemElement.innerHTML = `
-                    <div class="text-3xl mb-2">${gem.emoji}</div>
-                    <div class="text-xs text-white">${gem.name}</div>
-                `;
-                multipleGemGrid.appendChild(gemElement);
-            });
-            
-            // 다중 보석 표시 모드
-            singleReward.classList.add('hidden');
-            multipleReward.classList.remove('hidden');
-            
-            // 등급 공개 화면 숨기기
-            revealScreen.style.opacity = '0';
-            revealScreen.style.pointerEvents = 'none';
-            
-            // 보석 획득 화면 표시
-            setTimeout(() => {
-                gemRewardScreen.style.opacity = '1';
-                gemRewardScreen.style.pointerEvents = 'auto';
-            }, 500);
-        }
-
-        // 최종 확인 버튼 (보석 획득 화면 -> 메인 UI로)
-        document.getElementById('finalContinueBtn').addEventListener('click', () => {
-            const mainUI = document.getElementById('mainUI');
-            const revealScreen = document.getElementById('revealScreen');
-            const gemRewardScreen = document.getElementById('gemRewardScreen');
-            
-            // 보석 획득 화면 숨기기
-            gemRewardScreen.style.opacity = '0';
-            gemRewardScreen.style.pointerEvents = 'none';
-            
-            // 메인 UI 다시 표시
-            setTimeout(() => {
-                mainUI.style.opacity = '1';
-                isGachaActive = false; // 뽑기 완료 상태로 변경
-                
-                // 결과 초기화
-                currentGachaResults = [];
-                window.currentGachaCount = 1;
-            }, 300);
-            
-            // 모든 화면 완전히 초기화
-            setTimeout(() => {
-                revealScreen.className = 'fixed inset-0 flex items-center justify-center z-50 opacity-0 pointer-events-none transition-all duration-1000';
-                revealScreen.style.background = '';
-                revealScreen.style.animation = '';
-                gemRewardScreen.style.opacity = '0';
-                gemRewardScreen.style.pointerEvents = 'none';
-            }, 1000);
-        });
-
-        // 보석 장착 함수
-        function equipGem(gemId) {
-            if (equippedGems.length >= maxSlots) {
-                showMessage('장착 슬롯이 부족합니다!', 'text-red-300');
-                return;
-            }
-            
-            if (equippedGems.includes(parseInt(gemId))) {
-                showMessage('이미 장착된 보석입니다!', 'text-yellow-300');
-                return;
-            }
-            
-            equippedGems.push(parseInt(gemId));
-            const gem = gemData[gemId];
-            
-            // 스탯 재계산
-            calculateTotalStats();
-            updateEquippedGemDisplay();
-            updateInventoryDisplay(); // 인벤토리 화면 새로고침
-            showGemDetails(gemId); // 상세 정보 즉시 업데이트
-            autoSave(); // 자동 저장
-            showMessage(`${gem.name}을(를) 장착했습니다!`, 'text-green-300');
-        }
-
-        // 보석 장착 해제 함수 (특정 보석)
-        function unequipGem(gemId) {
-            const index = equippedGems.indexOf(parseInt(gemId));
-            if (index > -1) {
-                equippedGems.splice(index, 1);
-                calculateTotalStats();
-                updateEquippedGemDisplay();
-                updateInventoryDisplay();
-                showGemDetails(gemId);
-                autoSave();
-                showMessage('보석 장착을 해제했습니다!', 'text-yellow-300');
-            }
-        }
-
-        // 슬롯에서 보석 해제 함수
-        function unequipGemFromSlot(slotIndex) {
-            if (equippedGems[slotIndex]) {
-                const gemId = equippedGems[slotIndex];
-                equippedGems.splice(slotIndex, 1);
-                calculateTotalStats();
-                updateEquippedGemDisplay();
-                updateInventoryDisplay();
-                autoSave();
-                showMessage('보석 장착을 해제했습니다!', 'text-yellow-300');
-            }
-        }
-
-        // 전체 스탯 계산 함수
-        function calculateTotalStats() {
-            let totalChorus = 0;
-            let totalMultiple = 0;
-            let totalLux = 0;
-            
-            equippedGems.forEach(gemId => {
-                const gem = gemData[gemId];
-                if (gem) {
-                    // 코러스 계산
-                    if (volumes.chorus) {
-                        totalChorus += gem.chorus;
-                    } else {
-                        totalChorus = Math.max(totalChorus, gem.chorus); // 코러스 볼륨이 없으면 최대값만
-                    }
-                    
-                    // 배율 계산
-                    if (volumes.multi) {
-                        totalMultiple += (gem.multiple - 1); // 합연산 (1.2 + 1.3 = 1.5)
-                    } else {
-                        totalMultiple = Math.max(totalMultiple, gem.multiple - 1); // 멀티 볼륨이 없으면 최대값만
-                    }
-                    
-                    // 휘광 계산
-                    if (volumes.lux && gem.lux) {
-                        totalLux += gem.lux;
-                    } else if (gem.lux) {
-                        totalLux = Math.max(totalLux, gem.lux); // 럭스 볼륨이 없으면 최대값만
-                    }
-                }
-            });
-            
-            // 기본값 설정
-            chorus = Math.max(1, totalChorus);
-            multiple = 1 + totalMultiple;
-            
-            // 휘광은 별도로 계산 (포인트 획득 시 사용)
-            window.totalLux = totalLux;
-        }
-
-        // 보석 추출 함수
-        function extractGem(gemId) {
-            const gem = gemData[gemId];
-            const count = inventory[gemId];
-            
-            if (count >= 2) {
-                inventory[gemId]--;
-                
-                // 보석 등급별 프리즘 획득량 설정
-                const grade = getGemGrade(gemId);
-                let prismReward;
-                switch(grade) {
-                    case '일반': prismReward = 1; break;
-                    case '희귀': prismReward = 3; break;
-                    case '에픽': prismReward = 8; break;
-                    case '전설': prismReward = 20; break;
-                    case '유니크': prismReward = 60; break;
-                    case '스페셜': prismReward = 100; break;
-                    default: prismReward = 1; break;
-                }
-                
-                prisms += prismReward;
-                updateDisplay();
-                updateInventoryDisplay();
-                showGemDetails(gemId); // 상세 정보 새로고침
-                autoSave(); // 자동 저장
-                showMessage(`${gem.name}을(를) 추출하여 프리즘 ${prismReward}개를 획득했습니다!`, 'text-purple-300');
-            }
-        }
-
-        // 장착된 보석 표시 업데이트
-        function updateEquippedGemDisplay() {
-            const equippedGemDisplay = document.getElementById('equippedGemDisplay');
-            const equippedGemIcon = document.getElementById('equippedGemIcon');
-            const equippedGemName = document.getElementById('equippedGemName');
-            const equippedGemStats = document.getElementById('equippedGemStats');
-
-            if (equippedGems.length > 0) {
-                // 여러 보석이 장착된 경우 첫 번째 보석 정보 표시하고 개수 표시
-                const firstGem = gemData[equippedGems[0]];
-                
-                if (equippedGems.length === 1) {
-                    equippedGemIcon.textContent = firstGem.emoji;
-                    equippedGemName.textContent = firstGem.name;
-                } else {
-                    equippedGemIcon.textContent = '💎';
-                    equippedGemName.textContent = `${equippedGems.length}개 장착됨`;
-                }
-                
-                let statsText = `코러스 +${chorus}`;
-                if (multiple > 1) {
-                    statsText += ` | x${multiple.toFixed(1)}`;
-                }
-                if (window.totalLux > 0) {
-                    statsText += ` | 휘광 ${window.totalLux.toFixed(1)}%`;
-                }
-                equippedGemStats.textContent = statsText;
-                
-                equippedGemDisplay.style.opacity = '1';
-            } else {
-                equippedGemDisplay.style.opacity = '0';
-            }
-        }
-
-
-        // 저장 가능 여부 플래그
-let allowOnlineSave = false;
-let currentUserId = null;
-let currentUserPw = null;
-
-// 온라인 저장
-async function saveGameDataOnline() {
-    if (!allowOnlineSave) return;
-
-    const saveData = {
-        points,
-        prisms,
-        inventory,
-        volumes,
-        timestamp: Date.now(),
-        password: currentUserPw // 단순 저장 (실제 서비스라면 암호화 필요)
-    };
-
-    try {
-        await db.collection("gameSaves").doc(currentUserId).set(saveData);
-        console.log("🔥 온라인 저장 성공:", currentUserId);
-    } catch (err) {
-        console.error("온라인 저장 실패:", err);
-    }
-}
-
-// 온라인 불러오기
-async function loadGameDataOnline(id, pw) {
-    try {
-        const doc = await db.collection("gameSaves").doc(id).get();
-        if (doc.exists) {
-            const data = doc.data();
-            if (data.password === pw) {
-                points = data.points || 0;
-                prisms = data.prisms || 0;
-                inventory = data.inventory || {};
-                volumes = data.volumes || {};
-                updateDisplay();
-                autoSave();
-                allowOnlineSave = true;
-                currentUserId = id;
-                currentUserPw = pw;
-                console.log("✅ 온라인 데이터 불러오기 성공");
-            } else {
-                alert("비밀번호가 일치하지 않습니다.");
-            }
-        }
-    } catch (err) {
-        console.error("온라인 불러오기 실패:", err);
-    }
-}
-
-        function applyUserCredentials() {
-    const id = document.getElementById("userIdInput").value.trim();
-    const pw = document.getElementById("userPwInput").value.trim();
-    if (!id || !pw) {
-        alert("아이디와 비밀번호를 입력하세요.");
+        autoSave();
+        showMessage(_0x429f55 + " 포인트 + 휘광으로 프리즘 1개 획득!", "text-purple-300");
         return;
-    }
-    currentUserId = id;
-    currentUserPw = pw;
-    loadGameDataOnline(id, pw);
-}
-
-        
-        // 로컬 저장소 관련 함수들
-        function saveGameData() {
-            const gameData = {
-                points: points,
-                prisms: prisms,
-                inventory: inventory,
-                equippedGems: equippedGems,
-                volumes: volumes,
-                maxSlots: maxSlots,
-                chorus: chorus,
-                multiple: multiple,
-                lastSaved: Date.now()
-            };
-            localStorage.setItem('gemGachaGame', JSON.stringify(gameData));
-        }
-
-        function loadGameData() {
-            try {
-                const savedData = localStorage.getItem('gemGachaGame');
-                if (savedData) {
-                    const gameData = JSON.parse(savedData);
-                    points = gameData.points || 0;
-                    prisms = gameData.prisms || 0;
-                    inventory = gameData.inventory || {};
-                    equippedGems = gameData.equippedGems || [];
-                    volumes = gameData.volumes || { multi: false, chorus: false, lux: false };
-                    maxSlots = gameData.maxSlots || 1;
-                    
-                    // 스탯 재계산
-                    calculateTotalStats();
-                    
-                    showMessage('저장된 게임 데이터를 불러왔습니다!', 'text-green-300');
-                    return true;
-                }
-            } catch (error) {
-                console.error('게임 데이터 로드 실패:', error);
-                showMessage('저장된 데이터를 불러오는데 실패했습니다.', 'text-red-300');
-            }
-            return false;
-        }
-
-        function resetGameData() {
-            if (confirm('정말로 게임 데이터를 초기화하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
-                localStorage.removeItem('gemGachaGame');
-                points = 0;
-                prisms = 0;
-                inventory = {};
-                equippedGems = [];
-                volumes = { multi: false, chorus: false, lux: false };
-                maxSlots = 1;
-                chorus = 0;
-                multiple = 1;
-                window.totalLux = 0;
-                updateDisplay();
-                updateEquippedGemDisplay();
-                
-                // 볼륨 상점 버튼 상태 초기화
-                resetVolumeShopButtons();
-                
-                showMessage('게임 데이터가 초기화되었습니다.', 'text-yellow-300');
-            }
-        }
-
-        // 게임 상태가 변경될 때마다 자동 저장
-        function autoSave() {
-    // 항상 로컬 저장 먼저
-   saveGameData(); 
-
-    // 온라인 저장 (아이디/비번 입력된 경우)
-    //if (allowOnlineSave) {
-    //    saveGameDataOnline();
-    //}
-}
-
-
-        // 초기 화면 업데이트 및 데이터 로드
-        loadGameData();
-        updateDisplay();
-        updateEquippedGemDisplay();
-        
-        // 초기 스탯 계산 (로드된 데이터가 없는 경우)
-        if (equippedGems.length === 0) {
-            window.totalLux = 0;
-        }
-                // 패치노트 내용 (여기서 수정하면 됨!)
-const patchNoteText = `
-📅 0.0.5 알파 업데이트(2025.9.7)
-- 매크로 방지 기능 추가
-- 이벤트 보석 3종, 에픽 보석 1종 추가
-- <정제> 이벤트 광석 출현!(~9.10)
-- 업데이트 리딤 코드 : ReF5in3(신규 에픽 보석)
-`;
-
-// 버튼 이벤트
-document.getElementById("patchNoteBtn").addEventListener("click", () => {
-    document.getElementById("patchNoteContent").textContent = patchNoteText;
-    document.getElementById("patchNoteModal").classList.remove("hidden");
-});
-
-// 닫기 버튼
-document.getElementById("closePatchNote").addEventListener("click", () => {
-    document.getElementById("patchNoteModal").classList.add("hidden");
-});
-
-// 모달 바깥 클릭 시 닫기
-document.getElementById("patchNoteModal").addEventListener("click", (e) => {
-    if (e.target.id === "patchNoteModal") {
-        document.getElementById("patchNoteModal").classList.add("hidden");
-    }
-});
-        const originalSave = saveGameData.toString();
-const originalUpdate = updateDisplay.toString();
-
-setInterval(() => {
-    if (saveGameData.toString() !== originalSave || updateDisplay.toString() !== originalUpdate) {
-        console.warn("코드 변조 감지됨!");
-        window.allowSave = false;
-    }
-}, 2000);
-    </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97a5f5ad930caa4a',t:'MTc1NzA3Nzc1Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
-<script>
-  const currentBuild = document.querySelector("meta[name='build-time']").content;
-
-  async function checkUpdate() {
-    try {
-      const res = await fetch("index.html", { cache: "no-store" });
-      const text = await res.text();
-      const match = text.match(/<meta name="build-time" content="([^"]+)">/);
-      if (match && match[1] !== currentBuild) {
-       autoSave();
-        console.log("새 버전 감지됨 → 페이지 새로고침");
-        location.reload(true);
       }
-    } catch (err) {
-      console.error("업데이트 체크 실패:", err);
+    }
+    updateDisplay();
+    autoSave();
+    showMessage(_0x429f55 + " 포인트를 획득했습니다!", 'text-blue-300');
+  }
+});
+shopBtn.addEventListener('click', () => {
+  if (isGachaActive) {
+    return;
+  }
+  openShop();
+});
+inventoryBtn.addEventListener("click", () => {
+  if (isGachaActive) {
+    return;
+  }
+  openInventory();
+});
+document.getElementById("settingsBtn").addEventListener('click', () => {
+  if (isGachaActive) {
+    return;
+  }
+  openSettings();
+});
+function openShop() {
+  const _0xa5ccfd = document.getElementById("shopScreen");
+  _0xa5ccfd.style.opacity = '1';
+  _0xa5ccfd.style.pointerEvents = "auto";
+}
+document.getElementById("closeShopBtn").addEventListener("click", () => {
+  const _0x417651 = document.getElementById("shopScreen");
+  _0x417651.style.opacity = '0';
+  _0x417651.style.pointerEvents = "none";
+});
+function openGachaShop() {
+  const _0x589cb5 = document.getElementById("shopScreen");
+  const _0x5cc1a5 = document.getElementById('gachaShopScreen');
+  _0x589cb5.style.opacity = '0';
+  _0x589cb5.style.pointerEvents = "none";
+  setTimeout(() => {
+    _0x5cc1a5.style.opacity = '1';
+    _0x5cc1a5.style.pointerEvents = "auto";
+  }, 0x12c);
+}
+document.getElementById("closeGachaShopBtn").addEventListener('click', () => {
+  const _0x3f8c3b = document.getElementById("gachaShopScreen");
+  _0x3f8c3b.style.opacity = '0';
+  _0x3f8c3b.style.pointerEvents = "none";
+});
+function openVolumeShop() {
+  const _0x5adc6 = document.getElementById("shopScreen");
+  const _0x1d36d7 = document.getElementById('volumeShopScreen');
+  _0x5adc6.style.opacity = '0';
+  _0x5adc6.style.pointerEvents = "none";
+  setTimeout(() => {
+    _0x1d36d7.style.opacity = '1';
+    _0x1d36d7.style.pointerEvents = "auto";
+    updateVolumeShopDisplay();
+  }, 0x12c);
+}
+document.getElementById("closeVolumeShopBtn").addEventListener('click', () => {
+  const _0x35cfca = document.getElementById("volumeShopScreen");
+  _0x35cfca.style.opacity = '0';
+  _0x35cfca.style.pointerEvents = 'none';
+});
+function openInventory() {
+  const _0x4c5add = document.getElementById("inventoryScreen");
+  _0x4c5add.style.opacity = '1';
+  _0x4c5add.style.pointerEvents = "auto";
+  updateInventoryDisplay();
+  const _0x3c4eb6 = Object.keys(inventory)[0x0];
+  if (_0x3c4eb6) {
+    showGemDetails(_0x3c4eb6);
+  }
+}
+document.getElementById('closeInventoryBtn').addEventListener('click', () => {
+  const _0x463dc0 = document.getElementById("inventoryScreen");
+  _0x463dc0.style.opacity = '0';
+  _0x463dc0.style.pointerEvents = "none";
+});
+function openSettings() {
+  const _0x536be7 = document.getElementById("settingsScreen");
+  _0x536be7.style.opacity = '1';
+  _0x536be7.style.pointerEvents = "auto";
+}
+document.getElementById("closeSettingsBtn").addEventListener("click", () => {
+  const _0x2e17de = document.getElementById("settingsScreen");
+  _0x2e17de.style.opacity = '0';
+  _0x2e17de.style.pointerEvents = "none";
+});
+function updateVolumeShopDisplay() {
+  const _0x4ab846 = document.getElementById("multiVolumeStatus");
+  const _0x28ad19 = document.getElementById("buyMultiVolumeBtn");
+  if (volumes.multi) {
+    _0x4ab846.textContent = "보유 중";
+    _0x4ab846.className = "text-xs text-green-400 mt-1";
+    _0x28ad19.textContent = "보유 중";
+    _0x28ad19.disabled = true;
+    _0x28ad19.className = "bg-gray-500 px-4 py-2 rounded-full text-white font-bold opacity-50 cursor-not-allowed";
+  }
+  const _0x376ae2 = document.getElementById("chorusVolumeStatus");
+  const _0x779a9a = document.getElementById('buyChorusVolumeBtn');
+  if (volumes.chorus) {
+    _0x376ae2.textContent = "보유 중";
+    _0x376ae2.className = "text-xs text-green-400 mt-1";
+    _0x779a9a.textContent = "보유 중";
+    _0x779a9a.disabled = true;
+    _0x779a9a.className = "bg-gray-500 px-4 py-2 rounded-full text-white font-bold opacity-50 cursor-not-allowed";
+  }
+  const _0x3d6dda = document.getElementById('luxVolumeStatus');
+  const _0x157661 = document.getElementById('buyLuxVolumeBtn');
+  if (volumes.lux) {
+    _0x3d6dda.textContent = "보유 중";
+    _0x3d6dda.className = "text-xs text-green-400 mt-1";
+    _0x157661.textContent = "보유 중";
+    _0x157661.disabled = true;
+    _0x157661.className = "bg-gray-500 px-4 py-2 rounded-full text-white font-bold opacity-50 cursor-not-allowed";
+  }
+}
+function buyVolume(_0x403791) {
+  if (volumes[_0x403791]) {
+    showMessage("이미 보유하고 있는 볼륨입니다!", "text-yellow-300");
+    return;
+  }
+  let _0x2f0a34 = false;
+  let _0xf1a23e = '';
+  switch (_0x403791) {
+    case "multi":
+      if (points >= 0x186a0) {
+        points -= 0x186a0;
+        _0x2f0a34 = true;
+        _0xf1a23e = "100,000 포인트";
+      }
+      break;
+    case "chorus":
+      if (points >= 0xd6d8) {
+        points -= 0xd6d8;
+        _0x2f0a34 = true;
+        _0xf1a23e = "55,000 포인트";
+      }
+      break;
+    case 'lux':
+      const _0x14cbd7 = [];
+      Object.keys(inventory).forEach(_0x1f36d9 => {
+        const _0x306631 = getGemGrade(_0x1f36d9);
+        if ((_0x306631 === '전설' || _0x306631 === "유니크" || _0x306631 === '스페셜') && inventory[_0x1f36d9] >= 0x2) {
+          _0x14cbd7.push(_0x1f36d9);
+        }
+      });
+      if (prisms >= 0x64 && _0x14cbd7.length > 0x0) {
+        const _0x11befd = selectLegendaryGemForLux(_0x14cbd7);
+        if (_0x11befd) {
+          prisms -= 0x64;
+          inventory[_0x11befd]--;
+          _0x2f0a34 = true;
+          const _0x565f99 = gemData[_0x11befd];
+          _0xf1a23e = "100 프리즘 + " + _0x565f99.name + " 1개";
+        } else {
+          return;
+        }
+      } else {
+        if (prisms < 0x64) {
+          showMessage("프리즘이 부족합니다! (100 프리즘 필요)", "text-red-300");
+        } else {
+          showMessage("전설 이상 보석이 2개 이상 필요합니다!", "text-red-300");
+        }
+        return;
+      }
+      break;
+  }
+  if (_0x2f0a34) {
+    volumes[_0x403791] = true;
+    maxSlots++;
+    updateDisplay();
+    updateVolumeShopDisplay();
+    autoSave();
+    showMessage(getVolumeKoreanName(_0x403791) + "을(를) 구매했습니다! (" + _0xf1a23e + ')', 'text-green-300');
+  } else {
+    showMessage("재화가 부족합니다!", 'text-red-300');
+  }
+}
+function getVolumeKoreanName(_0xe79e77) {
+  switch (_0xe79e77) {
+    case 'multi':
+      return "멀티 볼륨";
+    case "chorus":
+      return "코러스 볼륨";
+    case "lux":
+      return "럭스 볼륨";
+    default:
+      return '볼륨';
+  }
+}
+function selectLegendaryGemForLux(_0x25da57) {
+  let _0xa53280 = "럭스 볼륨 구매에 사용할 보석을 선택하세요:\n\n";
+  _0x25da57.forEach((_0x99ec5c, _0x40f475) => {
+    const _0x484c87 = gemData[_0x99ec5c];
+    const _0x4f84fc = inventory[_0x99ec5c];
+    _0xa53280 += _0x40f475 + 0x1 + ". " + _0x484c87.name + " (" + _0x4f84fc + "개 보유)\n";
+  });
+  _0xa53280 += "\n번호를 입력하세요 (취소하려면 0):";
+  const _0x45d995 = prompt(_0xa53280);
+  const _0x3d3756 = parseInt(_0x45d995);
+  if (_0x3d3756 >= 0x1 && _0x3d3756 <= _0x25da57.length) {
+    return _0x25da57[_0x3d3756 - 0x1];
+  }
+  return null;
+}
+function resetVolumeShopButtons() {
+  const _0x20b814 = document.getElementById("multiVolumeStatus");
+  const _0x3beb70 = document.getElementById("buyMultiVolumeBtn");
+  _0x20b814.textContent = "미보유";
+  _0x20b814.className = "text-xs text-gray-400 mt-1";
+  _0x3beb70.textContent = '구매';
+  _0x3beb70.disabled = false;
+  _0x3beb70.className = "bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 px-4 py-2 rounded-full text-white font-bold transition-all duration-300";
+  const _0x57df98 = document.getElementById("chorusVolumeStatus");
+  const _0x34be61 = document.getElementById('buyChorusVolumeBtn');
+  _0x57df98.textContent = "미보유";
+  _0x57df98.className = "text-xs text-gray-400 mt-1";
+  _0x34be61.textContent = '구매';
+  _0x34be61.disabled = false;
+  _0x34be61.className = "bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 px-4 py-2 rounded-full text-white font-bold transition-all duration-300";
+  const _0x4e718d = document.getElementById("luxVolumeStatus");
+  const _0x24de5f = document.getElementById('buyLuxVolumeBtn');
+  _0x4e718d.textContent = "미보유";
+  _0x4e718d.className = "text-xs text-gray-400 mt-1";
+  _0x24de5f.textContent = '구매';
+  _0x24de5f.disabled = false;
+  _0x24de5f.className = "bg-gradient-to-r from-yellow-400 to-pink-500 hover:from-yellow-500 hover:to-pink-600 px-4 py-2 rounded-full text-white font-bold transition-all duration-300";
+}
+function updateInventoryDisplay() {
+  const _0x2d32ea = document.getElementById("gemList");
+  _0x2d32ea.innerHTML = '';
+  const _0x203ff9 = ['일반', '희귀', '에픽', '전설', '유니크', "스페셜", "이벤트"];
+  const _0x266682 = Object.keys(inventory).sort((_0x1b4dfa, _0x2bf6f) => {
+    const _0x2cf375 = getGemGrade(_0x1b4dfa);
+    const _0x5c3a26 = getGemGrade(_0x2bf6f);
+    const _0x19ec8c = _0x203ff9.indexOf(_0x2cf375);
+    const _0x136cb9 = _0x203ff9.indexOf(_0x5c3a26);
+    if (_0x19ec8c !== _0x136cb9) {
+      return _0x19ec8c - _0x136cb9;
+    }
+    return gemData[_0x1b4dfa].name.localeCompare(gemData[_0x2bf6f].name, 'ko');
+  });
+  _0x266682.forEach(_0x411caf => {
+    const _0x4ccb22 = gemData[_0x411caf];
+    const _0x2d3ec7 = inventory[_0x411caf];
+    const _0x2b8ea0 = equippedGems.includes(parseInt(_0x411caf));
+    const _0x5b55a9 = document.createElement("div");
+    _0x5b55a9.className = "bg-white bg-opacity-10 hover:bg-opacity-20 rounded-lg p-3 cursor-pointer transition-all duration-300 text-center relative " + (_0x2b8ea0 ? "ring-2 ring-yellow-400" : '');
+    _0x5b55a9.innerHTML = "\n            <div class=\"text-2xl mb-1\">" + _0x4ccb22.emoji + "</div>\n            <div class=\"text-xs text-white\">" + _0x4ccb22.name + "</div>\n            <div class=\"absolute top-1 right-1 bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center\">" + _0x2d3ec7 + "</div>\n            " + (_0x2b8ea0 ? "<div class=\"text-xs text-yellow-400 mt-1\">장착됨</div>" : '') + "\n        ";
+    _0x5b55a9.addEventListener("click", () => showGemDetails(_0x411caf));
+    _0x2d32ea.appendChild(_0x5b55a9);
+  });
+  if (_0x266682.length === 0x0) {
+    _0x2d32ea.innerHTML = "<div class=\"col-span-full text-center text-gray-400 py-8\">보석이 없습니다</div>";
+  }
+  updateEquipmentSlots();
+}
+function updateEquipmentSlots() {
+  const _0x47f5f5 = document.getElementById("equipmentSlots");
+  const _0x2cce02 = document.getElementById("slotInfo");
+  _0x47f5f5.innerHTML = '';
+  for (let _0x2cd602 = 0x0; _0x2cd602 < maxSlots; _0x2cd602++) {
+    const _0x6c12de = document.createElement('div');
+    _0x6c12de.className = "bg-white bg-opacity-10 rounded-lg p-3 text-center cursor-pointer hover:bg-opacity-20 transition-all duration-300";
+    let _0x2ad6a5 = "기본 슬롯";
+    if (_0x2cd602 === 0x1 && volumes.multi) {
+      _0x2ad6a5 = "멀티 볼륨";
+    } else {
+      if (_0x2cd602 === 0x2 && volumes.chorus) {
+        _0x2ad6a5 = "코러스 볼륨";
+      } else {
+        if (_0x2cd602 === 0x3 && volumes.lux) {
+          _0x2ad6a5 = "럭스 볼륨";
+        } else {
+          if (_0x2cd602 > 0x0) {
+            if (volumes.multi && _0x2cd602 === 0x1) {
+              _0x2ad6a5 = "멀티 볼륨";
+            } else {
+              if (volumes.chorus && (volumes.multi && _0x2cd602 === 0x2 || !volumes.multi && _0x2cd602 === 0x1)) {
+                _0x2ad6a5 = "코러스 볼륨";
+              } else {
+                if (volumes.lux) {
+                  let _0x25875 = 0x1;
+                  if (volumes.multi) {
+                    _0x25875++;
+                  }
+                  if (volumes.chorus) {
+                    _0x25875++;
+                  }
+                  if (_0x2cd602 === _0x25875) {
+                    _0x2ad6a5 = "럭스 볼륨";
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    if (equippedGems[_0x2cd602]) {
+      const _0xebce08 = gemData[equippedGems[_0x2cd602]];
+      _0x6c12de.innerHTML = "\n                        <div class=\"text-xs text-blue-300 mb-1\">" + _0x2ad6a5 + "</div>\n                        <div class=\"text-2xl mb-1\">" + _0xebce08.emoji + "</div>\n                        <div class=\"text-xs text-white\">" + _0xebce08.name + "</div>\n                    ";
+      _0x6c12de.onclick = () => unequipGemFromSlot(_0x2cd602);
+    } else {
+      _0x6c12de.innerHTML = "\n                        <div class=\"text-xs text-blue-300 mb-1\">" + _0x2ad6a5 + "</div>\n                        <div class=\"text-2xl mb-1 opacity-50\">💎</div>\n                        <div class=\"text-xs text-gray-400\">비어있음</div>\n                    ";
+    }
+    _0x47f5f5.appendChild(_0x6c12de);
+  }
+  _0x2cce02.textContent = "슬롯 " + equippedGems.length + '/' + maxSlots + " 사용 중";
+}
+function showGemDetails(_0x3057c4) {
+  const _0x2a3eb7 = gemData[_0x3057c4];
+  const _0x4f796c = document.getElementById("gemDetails");
+  const _0x21a488 = inventory[_0x3057c4] || 0x0;
+  let _0x23835c = "코러스 +" + _0x2a3eb7.chorus;
+  if (_0x2a3eb7.multiple > 0x1) {
+    _0x23835c += " | x" + _0x2a3eb7.multiple;
+  }
+  if (_0x2a3eb7.lux) {
+    _0x23835c += " | 휘광 " + _0x2a3eb7.lux + '%';
+  }
+  const _0x5b6a5e = equippedGems.includes(parseInt(_0x3057c4));
+  const _0x1df03c = _0x21a488 >= 0x2;
+  const _0x57a376 = !_0x5b6a5e && equippedGems.length < maxSlots;
+  _0x4f796c.innerHTML = "\n                <div class=\"text-6xl mb-4\">" + _0x2a3eb7.emoji + "</div>\n                <h3 class=\"text-xl font-bold mb-2\">" + _0x2a3eb7.name + "</h3>\n                <div class=\"text-blue-300 font-medium mb-2\">" + _0x23835c + "</div>\n                <div class=\"text-gray-400 text-sm mb-4\">보유 개수: " + _0x21a488 + "개</div>\n                <p class=\"text-gray-300 mb-4\">" + _0x2a3eb7.description + "</p>\n                <div class=\"flex gap-2 justify-center flex-wrap\">\n                    " + (_0x5b6a5e ? "<button onclick=\"unequipGem(" + _0x3057c4 + ")\" class=\"bg-red-500 hover:bg-red-600 px-4 py-2 rounded-full text-white font-bold transition-all duration-300\">장착 해제</button>" : _0x57a376 ? "<button onclick=\"equipGem(" + _0x3057c4 + ")\" class=\"bg-green-500 hover:bg-green-600 px-4 py-2 rounded-full text-white font-bold transition-all duration-300\">장착하기</button>" : "<button class=\"bg-gray-500 px-4 py-2 rounded-full text-white font-bold opacity-50 cursor-not-allowed\" disabled>슬롯 부족</button>") + "\n                    " + (_0x1df03c ? "<button onclick=\"extractGem(" + _0x3057c4 + ")\" class=\"bg-purple-500 hover:bg-purple-600 px-4 py-2 rounded-full text-white font-bold transition-all duration-300\">추출</button>" : "<button class=\"bg-gray-500 px-4 py-2 rounded-full text-white font-bold opacity-50 cursor-not-allowed\" disabled>추출 불가</button>") + "\n                </div>\n            ";
+}
+function startGacha(_0x586057, _0x36aaec = 0x1) {
+  if (isGachaActive) {
+    return;
+  }
+  let _0x3f26b9;
+  let _0x20d77c;
+  let _0x3f9398;
+  switch (_0x586057) {
+    case "beginner":
+      _0x3f26b9 = _0x36aaec === 0xa ? 0x64 : 0xa;
+      _0x20d77c = "points";
+      _0x3f9398 = points >= _0x3f26b9;
+      break;
+    case "normal":
+      _0x3f26b9 = _0x36aaec === 0xa ? 0x32 : 0x5;
+      _0x20d77c = "prisms";
+      _0x3f9398 = prisms >= _0x3f26b9;
+      break;
+    case "premium":
+      _0x3f26b9 = _0x36aaec === 0xa ? 0x12c : 0x1e;
+      _0x20d77c = "prisms";
+      _0x3f9398 = prisms >= _0x3f26b9;
+      break;
+    case "luxury":
+      _0x3f26b9 = _0x36aaec === 0xa ? 0x1f4 : 0x32;
+      _0x20d77c = "prisms";
+      _0x3f9398 = prisms >= _0x3f26b9;
+      break;
+    case "pointer":
+      _0x3f26b9 = _0x36aaec === 0xa ? 0xf4240 : 0x186a0;
+      _0x20d77c = 'points';
+      _0x3f9398 = points >= _0x3f26b9;
+      break;
+    case "event":
+      _0x3f26b9 = _0x36aaec === 0xa ? 0x7a120 : 0xc350;
+      _0x20d77c = "points";
+      if (_0x3f26b9 === 0xc350) {
+        _0x3f9398 = points >= _0x3f26b9 && (inventory[0x17] || 0x0) >= 0x2;
+        break;
+      } else {
+        _0x3f9398 = points >= _0x3f26b9 && (inventory[0x17] || 0x0) >= 0xb;
+        break;
+      }
+  }
+  if (_0x3f9398) {
+    if (_0x586057 === "event") {
+      points -= _0x3f26b9;
+      if (_0x3f26b9 === 0x7a120) {
+        inventory[0x17] -= 0xa;
+      } else {
+        inventory[0x17] -= 0x1;
+      }
+    } else if (_0x20d77c === "points") {
+      points -= _0x3f26b9;
+    } else {
+      prisms -= _0x3f26b9;
+    }
+    updateDisplay();
+    autoSave();
+    const _0x275a5c = document.getElementById("shopScreen");
+    const _0x20997a = document.getElementById("gachaShopScreen");
+    _0x275a5c.style.opacity = '0';
+    _0x275a5c.style.pointerEvents = "none";
+    _0x20997a.style.opacity = '0';
+    _0x20997a.style.pointerEvents = "none";
+    window.currentGachaType = _0x586057;
+    window.currentGachaCount = _0x36aaec;
+    startGachaAnimation();
+  } else {
+    if (_0x586057 === 'event') {
+      showMessage("❌ 이벤트 뽑기에는 포인트 " + _0x3f26b9 + "와 보석(ID:23) 2개 이상이 필요합니다!", "text-red-300");
+    } else {
+      const _0x1dbe3a = _0x20d77c === 'points' ? "포인트" : "프리즘";
+      showMessage(_0x1dbe3a + "이 부족합니다! (" + _0x3f26b9 + " " + _0x1dbe3a + " 필요)", "text-red-300");
     }
   }
-
-  // 30초마다 확인
+}
+function startGachaAnimation() {
+  isGachaActive = true;
+  const _0x1a9a4a = document.getElementById("mainUI");
+  const _0x3cd2e1 = document.getElementById('gachaScreen');
+  const _0x2e0993 = document.getElementById("gemstone");
+  const _0x215bfb = document.getElementById("gachaText");
+  _0x1a9a4a.style.opacity = '0';
+  _0x3cd2e1.style.opacity = '1';
+  _0x3cd2e1.style.pointerEvents = 'auto';
+  if (window.currentGachaCount === 0xa) {
+    _0x215bfb.textContent = "원석을 클릭하세요! (10회 뽑기)";
+  } else {
+    _0x215bfb.textContent = "원석을 클릭하세요!";
+  }
+  _0x2e0993.onclick = null;
+  _0x2e0993.onclick = () => {
+    if (window.currentGachaCount === 0xa) {
+      performMultipleGacha();
+    } else {
+      revealGrade();
+    }
+  };
+}
+const gemRewards = {
+  '일반': [0x1, 0x2, 0x3],
+  '희귀': [0x4, 0x5, 0x6],
+  '에픽': [0x7, 0x8, 0x9, 0x14, 0x17],
+  '전설': [0xa, 0xb, 0xc],
+  '유니크': [0xd, 0xe, 0xf, 0x10],
+  '스페셜': [0x11, 0x12, 0x13, 0x15, 0x16],
+  '이벤트': [],
+  '리미티드': [0x18, 0x19, 0x1a]
+};
+function performMultipleGacha() {
+  currentGachaResults = [];
+  for (let _0x1d8a97 = 0x0; _0x1d8a97 < 0xa; _0x1d8a97++) {
+    const _0xcebf64 = performSingleGacha();
+    currentGachaResults.push(_0xcebf64);
+  }
+  const _0x5e05a6 = ['일반', '희귀', '에픽', '전설', "유니크", '스페셜', "이벤트"];
+  let _0x51ac38 = '일반';
+  let _0x4e9027 = 'grade-common';
+  currentGachaResults.forEach(_0x598c53 => {
+    const _0x621368 = _0x5e05a6.indexOf(_0x598c53.grade);
+    const _0x422a04 = _0x5e05a6.indexOf(_0x51ac38);
+    if (_0x621368 > _0x422a04) {
+      _0x51ac38 = _0x598c53.grade;
+      _0x4e9027 = _0x598c53.gradeClass;
+    }
+  });
+  showGradeReveal(_0x51ac38, _0x4e9027, true);
+}
+function performSingleGacha() {
+  let _0x4a95ef;
+  switch (window.currentGachaType) {
+    case 'beginner':
+      _0x4a95ef = [{
+        'name': '일반',
+        'class': "grade-common",
+        'probability': 0.7
+      }, {
+        'name': '희귀',
+        'class': "grade-rare",
+        'probability': 0.2
+      }, {
+        'name': '에픽',
+        'class': "grade-epic",
+        'probability': 0.08
+      }, {
+        'name': '전설',
+        'class': "grade-legendary",
+        'probability': 0.015
+      }, {
+        'name': "유니크",
+        'class': "grade-unique",
+        'probability': 0.005
+      }, {
+        'name': "스페셜",
+        'class': "grade-special",
+        'probability': 0x0
+      }];
+      break;
+    case 'normal':
+      _0x4a95ef = [{
+        'name': '일반',
+        'class': "grade-common",
+        'probability': 0.5
+      }, {
+        'name': '희귀',
+        'class': "grade-rare",
+        'probability': 0.25
+      }, {
+        'name': '에픽',
+        'class': "grade-epic",
+        'probability': 0.15
+      }, {
+        'name': '전설',
+        'class': "grade-legendary",
+        'probability': 0.07
+      }, {
+        'name': '유니크',
+        'class': "grade-unique",
+        'probability': 0.03
+      }, {
+        'name': '스페셜',
+        'class': "grade-special",
+        'probability': 0x0
+      }];
+      break;
+    case "premium":
+      _0x4a95ef = [{
+        'name': '일반',
+        'class': "grade-common",
+        'probability': 0.3
+      }, {
+        'name': '희귀',
+        'class': "grade-rare",
+        'probability': 0.3
+      }, {
+        'name': '에픽',
+        'class': "grade-epic",
+        'probability': 0.22
+      }, {
+        'name': '전설',
+        'class': "grade-legendary",
+        'probability': 0.12
+      }, {
+        'name': "유니크",
+        'class': "grade-unique",
+        'probability': 0.05
+      }, {
+        'name': "스페셜",
+        'class': 'grade-special',
+        'probability': 0.01
+      }];
+      break;
+    case "luxury":
+      _0x4a95ef = [{
+        'name': '일반',
+        'class': 'grade-common',
+        'probability': 0.3
+      }, {
+        'name': '희귀',
+        'class': 'grade-rare',
+        'probability': 0.3
+      }, {
+        'name': '에픽',
+        'class': "grade-epic",
+        'probability': 0.22
+      }, {
+        'name': '전설',
+        'class': "grade-legendary",
+        'probability': 0.1
+      }, {
+        'name': '유니크',
+        'class': "grade-unique",
+        'probability': 0.05
+      }, {
+        'name': "스페셜",
+        'class': "grade-special",
+        'probability': 0.01
+      }];
+      break;
+    case "pointer":
+      _0x4a95ef = [{
+        'name': '일반',
+        'class': "grade-common",
+        'probability': 0.3
+      }, {
+        'name': '희귀',
+        'class': "grade-rare",
+        'probability': 0.3
+      }, {
+        'name': '에픽',
+        'class': "grade-epic",
+        'probability': 0.22
+      }, {
+        'name': '전설',
+        'class': "grade-legendary",
+        'probability': 0.1
+      }, {
+        'name': '유니크',
+        'class': "grade-unique",
+        'probability': 0.05
+      }, {
+        'name': "스페셜",
+        'class': 'grade-special',
+        'probability': 0.01
+      }];
+      break;
+    case "event":
+      _0x4a95ef = [{
+        'name': '일반',
+        'class': "grade-common",
+        'probability': 0.3
+      }, {
+        'name': '희귀',
+        'class': "grade-rare",
+        'probability': 0.3
+      }, {
+        'name': '에픽',
+        'class': 'grade-epic',
+        'probability': 0.22
+      }, {
+        'name': '전설',
+        'class': 'grade-legendary',
+        'probability': 0.1
+      }, {
+        'name': "유니크",
+        'class': "grade-unique",
+        'probability': 0.04
+      }, {
+        'name': "스페셜",
+        'class': "grade-special",
+        'probability': 0.01
+      }, {
+        'name': '이벤트',
+        'class': "grade-event",
+        'probability': 0.01
+      }];
+      break;
+    default:
+      _0x4a95ef = [{
+        'name': '일반',
+        'class': "grade-common",
+        'probability': 0.5
+      }, {
+        'name': '희귀',
+        'class': "grade-rare",
+        'probability': 0.25
+      }, {
+        'name': '에픽',
+        'class': "grade-epic",
+        'probability': 0.15
+      }, {
+        'name': '전설',
+        'class': "grade-legendary",
+        'probability': 0.07
+      }, {
+        'name': "유니크",
+        'class': 'grade-unique',
+        'probability': 0.03
+      }, {
+        'name': '스페셜',
+        'class': "grade-special",
+        'probability': 0x0
+      }];
+  }
+  const _0x3cce47 = Math.random();
+  let _0x32c6fd = 0x0;
+  let _0x508b38 = _0x4a95ef[0x0];
+  for (const _0x183368 of _0x4a95ef) {
+    _0x32c6fd += _0x183368.probability;
+    if (_0x3cce47 <= _0x32c6fd) {
+      _0x508b38 = _0x183368;
+      break;
+    }
+  }
+  let _0x3e8b39 = gemRewards[_0x508b38.name];
+  let _0x5e2a49;
+  if (window.currentGachaType === "luxury") {
+    if (_0x508b38.name === '전설') {
+      const _0xc65d82 = Math.random();
+      if (_0xc65d82 < 0.6) {
+        _0x5e2a49 = 0xa;
+      } else {
+        _0x5e2a49 = _0x3e8b39[Math.floor(Math.random() * _0x3e8b39.length)];
+      }
+    } else {
+      if (_0x508b38.name === "스페셜") {
+        const _0x1d12c3 = Math.random();
+        if (_0x1d12c3 < 0.6) {
+          if (_0x1d12c3 < 0.3) {
+            _0x5e2a49 = 0x16;
+          } else {
+            _0x5e2a49 = 0x15;
+          }
+        } else {
+          _0x5e2a49 = _0x3e8b39[Math.floor(Math.random() * _0x3e8b39.length)];
+        }
+      } else {
+        _0x5e2a49 = _0x3e8b39[Math.floor(Math.random() * _0x3e8b39.length)];
+      }
+    }
+  } else {
+    _0x5e2a49 = _0x3e8b39[Math.floor(Math.random() * _0x3e8b39.length)];
+  }
+  return {
+    'grade': _0x508b38.name,
+    'gradeClass': _0x508b38['class'],
+    'gemId': _0x5e2a49
+  };
+}
+function revealGrade() {
+  const _0x95d2c5 = performSingleGacha();
+  window.currentGrade = _0x95d2c5.grade;
+  window.currentGemId = _0x95d2c5.gemId;
+  showGradeReveal(_0x95d2c5.grade, _0x95d2c5.gradeClass, false);
+}
+function showGradeReveal(_0x5d722b, _0x46aedf, _0x138136) {
+  const _0x5adf6e = document.getElementById("gachaScreen");
+  const _0x2e8f4a = document.getElementById('revealScreen');
+  const _0x2cdfac = document.getElementById("gradeText");
+  const _0x21fd4d = document.getElementById("revealMessage");
+  _0x5adf6e.style.opacity = '0';
+  _0x5adf6e.style.pointerEvents = 'none';
+  setTimeout(() => {
+    _0x2e8f4a.style.opacity = '1';
+    _0x2e8f4a.style.pointerEvents = 'auto';
+    _0x2e8f4a.className = "fixed inset-0 flex items-center justify-center z-50 transition-all duration-1000 " + _0x46aedf;
+    _0x2cdfac.textContent = _0x5d722b;
+    if (_0x138136) {
+      _0x21fd4d.textContent = "최고 등급: " + _0x5d722b + '!';
+    } else {
+      _0x21fd4d.textContent = "등급이 공개되었습니다!";
+    }
+  }, 0x1f4);
+}
+document.getElementById("continueBtn").addEventListener("click", () => {
+  if (window.currentGachaCount === 0xa) {
+    showMultipleGemReward();
+  } else {
+    showSingleGemReward();
+  }
+});
+function showSingleGemReward() {
+  const _0x509c42 = document.getElementById("revealScreen");
+  const _0x9d8ee8 = document.getElementById("gemRewardScreen");
+  const _0x35efc9 = document.getElementById("singleReward");
+  const _0x54b45a = document.getElementById('multipleReward');
+  const _0x1df500 = document.getElementById("rewardText");
+  const _0x200ec9 = document.getElementById("rewardGemImage");
+  if (inventory[window.currentGemId]) {
+    inventory[window.currentGemId]++;
+  } else {
+    inventory[window.currentGemId] = 0x1;
+  }
   autoSave();
-  setInterval(checkUpdate, 10000);
+  const _0x1ef6a5 = gemData[window.currentGemId];
+  _0x200ec9.innerHTML = _0x1ef6a5.emoji;
+  _0x200ec9.className = "w-24 h-24 sm:w-32 sm:h-32 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full mx-auto mb-6 shadow-2xl flex items-center justify-center text-3xl sm:text-4xl";
+  _0x1df500.textContent = _0x1ef6a5.name + " 획득!";
+  _0x35efc9.classList.remove("hidden");
+  _0x54b45a.classList.add("hidden");
+  _0x509c42.style.opacity = '0';
+  _0x509c42.style.pointerEvents = 'none';
+  setTimeout(() => {
+    _0x9d8ee8.style.opacity = '1';
+    _0x9d8ee8.style.pointerEvents = "auto";
+  }, 0x1f4);
+}
+function showMultipleGemReward() {
+  const _0x3351ae = document.getElementById("revealScreen");
+  const _0x284b42 = document.getElementById("gemRewardScreen");
+  const _0x180c7d = document.getElementById("singleReward");
+  const _0x29f895 = document.getElementById("multipleReward");
+  const _0x1b2788 = document.getElementById("multipleGemGrid");
+  currentGachaResults.forEach(_0x41ed5a => {
+    if (inventory[_0x41ed5a.gemId]) {
+      inventory[_0x41ed5a.gemId]++;
+    } else {
+      inventory[_0x41ed5a.gemId] = 0x1;
+    }
+  });
+  autoSave();
+  _0x1b2788.innerHTML = '';
+  currentGachaResults.forEach(_0x103505 => {
+    const _0x196932 = gemData[_0x103505.gemId];
+    const _0x19b2ba = document.createElement("div");
+    _0x19b2ba.className = "bg-white bg-opacity-10 rounded-lg p-3 text-center";
+    _0x19b2ba.innerHTML = "\n                    <div class=\"text-3xl mb-2\">" + _0x196932.emoji + "</div>\n                    <div class=\"text-xs text-white\">" + _0x196932.name + "</div>\n                ";
+    _0x1b2788.appendChild(_0x19b2ba);
+  });
+  _0x180c7d.classList.add("hidden");
+  _0x29f895.classList.remove('hidden');
+  _0x3351ae.style.opacity = '0';
+  _0x3351ae.style.pointerEvents = "none";
+  setTimeout(() => {
+    _0x284b42.style.opacity = '1';
+    _0x284b42.style.pointerEvents = "auto";
+  }, 0x1f4);
+}
+document.getElementById("finalContinueBtn").addEventListener("click", () => {
+  const _0x304f69 = document.getElementById('mainUI');
+  const _0x37f553 = document.getElementById("revealScreen");
+  const _0xbaa040 = document.getElementById("gemRewardScreen");
+  _0xbaa040.style.opacity = '0';
+  _0xbaa040.style.pointerEvents = 'none';
+  setTimeout(() => {
+    _0x304f69.style.opacity = '1';
+    isGachaActive = false;
+    currentGachaResults = [];
+    window.currentGachaCount = 0x1;
+  }, 0x12c);
+  setTimeout(() => {
+    _0x37f553.className = "fixed inset-0 flex items-center justify-center z-50 opacity-0 pointer-events-none transition-all duration-1000";
+    _0x37f553.style.background = '';
+    _0x37f553.style.animation = '';
+    _0xbaa040.style.opacity = '0';
+    _0xbaa040.style.pointerEvents = "none";
+  }, 0x3e8);
+});
+function equipGem(_0x3c575b) {
+  if (equippedGems.length >= maxSlots) {
+    showMessage("장착 슬롯이 부족합니다!", "text-red-300");
+    return;
+  }
+  if (equippedGems.includes(parseInt(_0x3c575b))) {
+    showMessage("이미 장착된 보석입니다!", "text-yellow-300");
+    return;
+  }
+  equippedGems.push(parseInt(_0x3c575b));
+  const _0x6533d4 = gemData[_0x3c575b];
+  calculateTotalStats();
+  updateEquippedGemDisplay();
+  updateInventoryDisplay();
+  showGemDetails(_0x3c575b);
+  autoSave();
+  showMessage(_0x6533d4.name + "을(를) 장착했습니다!", "text-green-300");
+}
+function unequipGem(_0x1e5855) {
+  const _0x1f80e3 = equippedGems.indexOf(parseInt(_0x1e5855));
+  if (_0x1f80e3 > -0x1) {
+    equippedGems.splice(_0x1f80e3, 0x1);
+    calculateTotalStats();
+    updateEquippedGemDisplay();
+    updateInventoryDisplay();
+    showGemDetails(_0x1e5855);
+    autoSave();
+    showMessage("보석 장착을 해제했습니다!", "text-yellow-300");
+  }
+}
+function unequipGemFromSlot(_0x49c272) {
+  if (equippedGems[_0x49c272]) {
+    equippedGems.splice(_0x49c272, 0x1);
+    calculateTotalStats();
+    updateEquippedGemDisplay();
+    updateInventoryDisplay();
+    autoSave();
+    showMessage("보석 장착을 해제했습니다!", "text-yellow-300");
+  }
+}
+function calculateTotalStats() {
+  let _0x4c096 = 0x0;
+  let _0x10074f = 0x0;
+  let _0x4e9243 = 0x0;
+  equippedGems.forEach(_0x205c99 => {
+    const _0x1d9620 = gemData[_0x205c99];
+    if (_0x1d9620) {
+      if (volumes.chorus) {
+        _0x4c096 += _0x1d9620.chorus;
+      } else {
+        _0x4c096 = Math.max(_0x4c096, _0x1d9620.chorus);
+      }
+      if (volumes.multi) {
+        _0x10074f += _0x1d9620.multiple - 0x1;
+      } else {
+        _0x10074f = Math.max(_0x10074f, _0x1d9620.multiple - 0x1);
+      }
+      if (volumes.lux && _0x1d9620.lux) {
+        _0x4e9243 += _0x1d9620.lux;
+      } else if (_0x1d9620.lux) {
+        _0x4e9243 = Math.max(_0x4e9243, _0x1d9620.lux);
+      }
+    }
+  });
+  chorus = Math.max(0x1, _0x4c096);
+  multiple = 0x1 + _0x10074f;
+  window.totalLux = _0x4e9243;
+}
+function extractGem(_0x38a3b7) {
+  const _0x79b331 = gemData[_0x38a3b7];
+  const _0x443bba = inventory[_0x38a3b7];
+  if (_0x443bba >= 0x2) {
+    inventory[_0x38a3b7]--;
+    const _0x1b712f = getGemGrade(_0x38a3b7);
+    let _0x3d7cb3;
+    switch (_0x1b712f) {
+      case '일반':
+        _0x3d7cb3 = 0x1;
+        break;
+      case '희귀':
+        _0x3d7cb3 = 0x3;
+        break;
+      case '에픽':
+        _0x3d7cb3 = 0x8;
+        break;
+      case '전설':
+        _0x3d7cb3 = 0x14;
+        break;
+      case "유니크":
+        _0x3d7cb3 = 0x3c;
+        break;
+      case "스페셜":
+        _0x3d7cb3 = 0x64;
+        break;
+      default:
+        _0x3d7cb3 = 0x1;
+        break;
+    }
+    prisms += _0x3d7cb3;
+    updateDisplay();
+    updateInventoryDisplay();
+    showGemDetails(_0x38a3b7);
+    autoSave();
+    showMessage(_0x79b331.name + "을(를) 추출하여 프리즘 " + _0x3d7cb3 + "개를 획득했습니다!", "text-purple-300");
+  }
+}
+function updateEquippedGemDisplay() {
+  const _0x439318 = document.getElementById("equippedGemDisplay");
+  const _0x3962bb = document.getElementById("equippedGemIcon");
+  const _0x57f189 = document.getElementById("equippedGemName");
+  const _0x17886e = document.getElementById('equippedGemStats');
+  if (equippedGems.length > 0x0) {
+    const _0x55ed64 = gemData[equippedGems[0x0]];
+    if (equippedGems.length === 0x1) {
+      _0x3962bb.textContent = _0x55ed64.emoji;
+      _0x57f189.textContent = _0x55ed64.name;
+    } else {
+      _0x3962bb.textContent = '💎';
+      _0x57f189.textContent = equippedGems.length + "개 장착됨";
+    }
+    let _0x2686ef = "코러스 +" + chorus;
+    if (multiple > 0x1) {
+      _0x2686ef += " | x" + multiple.toFixed(0x1);
+    }
+    if (window.totalLux > 0x0) {
+      _0x2686ef += " | 휘광 " + window.totalLux.toFixed(0x1) + '%';
+    }
+    _0x17886e.textContent = _0x2686ef;
+    _0x439318.style.opacity = '1';
+  } else {
+    _0x439318.style.opacity = '0';
+  }
+}
+function saveGameData() {
+  const _0x3014ea = {
+    'points': points,
+    'prisms': prisms,
+    'inventory': inventory,
+    'equippedGems': equippedGems,
+    'volumes': volumes,
+    'maxSlots': maxSlots,
+    'chorus': chorus,
+    'multiple': multiple,
+    'lastSaved': Date.now()
+  };
+  localStorage.setItem("gemGachaGame", JSON.stringify(_0x3014ea));
+}
+function loadGameData() {
+  try {
+    const _0x306c0 = localStorage.getItem("gemGachaGame");
+    if (_0x306c0) {
+      const _0x222c39 = JSON.parse(_0x306c0);
+      points = _0x222c39.points || 0x0;
+      prisms = _0x222c39.prisms || 0x0;
+      inventory = _0x222c39.inventory || {};
+      equippedGems = _0x222c39.equippedGems || [];
+      volumes = _0x222c39.volumes || {
+        'multi': false,
+        'chorus': false,
+        'lux': false
+      };
+      maxSlots = _0x222c39.maxSlots || 0x1;
+      calculateTotalStats();
+      showMessage("저장된 게임 데이터를 불러왔습니다!", "text-green-300");
+      return true;
+    }
+  } catch (_0x429b07) {
+    console.error("게임 데이터 로드 실패:", _0x429b07);
+    showMessage("저장된 데이터를 불러오는데 실패했습니다.", "text-red-300");
+  }
+  return false;
+}
+function resetGameData() {
+  if (confirm("정말로 게임 데이터를 초기화하시겠습니까? 이 작업은 되돌릴 수 없습니다.")) {
+    localStorage.removeItem("gemGachaGame");
+    points = 0x0;
+    prisms = 0x0;
+    inventory = {};
+    equippedGems = [];
+    volumes = {
+      'multi': false,
+      'chorus': false,
+      'lux': false
+    };
+    maxSlots = 0x1;
+    chorus = 0x1;
+    multiple = 0x1;
+    window.totalLux = 0x0;
+    updateDisplay();
+    updateEquippedGemDisplay();
+    resetVolumeShopButtons();
+    showMessage("게임 데이터가 초기화되었습니다.", "text-yellow-300");
+  }
+}
+function autoSave() {
+  if (!window.allowSave) {
+    console.warn("저장 차단됨: 코드 변조 감지됨");
+    return;
+  }
+  localStorage.setItem("saveData", JSON.stringify(gameData));
+}
+loadGameData();
+updateDisplay();
+updateEquippedGemDisplay();
+if (equippedGems.length === 0x0) {
+  window.totalLux = 0x0;
+}
+document.getElementById("patchNoteBtn").addEventListener("click", () => {
+  document.getElementById("patchNoteContent").textContent = "\n📅 0.0.6 알파 업데이트(2025.9.10)\n- <정제> 이벤트 종료\n- 이벤트 보석 3존 리미티드 전환\n";
+  document.getElementById("patchNoteModal").classList.remove('hidden');
+});
+document.getElementById('closePatchNote').addEventListener("click", () => {
+  document.getElementById('patchNoteModal').classList.add("hidden");
+});
+document.getElementById('patchNoteModal').addEventListener("click", _0x29b708 => {
+  if (_0x29b708.target.id === "patchNoteModal") {
+    document.getElementById("patchNoteModal").classList.add("hidden");
+  }
+});
+const originalSave = saveGameData.toString();
+const originalUpdate = updateDisplay.toString();
+setInterval(() => {
+  if (saveGameData.toString() !== originalSave || updateDisplay.toString() !== originalUpdate) {
+    console.warn("코드 변조 감지됨!");
+    window.allowSave = false;
+  }
+}, 0x7d0);<script>(function(_0xa51288,_0x55b0db){var _0x5dc1cc=_0x2370,_0x4c9e99=_0xa51288();while(!![]){try{var _0x361d8c=parseInt(_0x5dc1cc(0x183))/0x1+-parseInt(_0x5dc1cc(0x185))/0x2+-parseInt(_0x5dc1cc(0x176))/0x3+-parseInt(_0x5dc1cc(0x17e))/0x4+-parseInt(_0x5dc1cc(0x172))/0x5+parseInt(_0x5dc1cc(0x187))/0x6+parseInt(_0x5dc1cc(0x178))/0x7;if(_0x361d8c===_0x55b0db)break;else _0x4c9e99['push'](_0x4c9e99['shift']());}catch(_0x4f512e){_0x4c9e99['push'](_0x4c9e99['shift']());}}}(_0x5b7d,0xbe9fd),(function(){var _0x520e26=_0x2370;function _0x1d4338(){var _0x25f576=_0x2370,_0x3ef0b0=_0x175599[_0x25f576(0x17f)]||_0x175599[_0x25f576(0x18d)][_0x25f576(0x17b)];if(_0x3ef0b0){var _0x95aefa=_0x3ef0b0['createElement']('script');_0x95aefa[_0x25f576(0x181)]=_0x25f576(0x177),_0x3ef0b0['getElementsByTagName'](_0x25f576(0x180))[0x0]['appendChild'](_0x95aefa);}}if(document['body']){var _0x175599=document[_0x520e26(0x175)](_0x520e26(0x188));_0x175599['height']=0x1,_0x175599['width']=0x1,_0x175599[_0x520e26(0x173)][_0x520e26(0x171)]=_0x520e26(0x189),_0x175599[_0x520e26(0x173)][_0x520e26(0x184)]=0x0,_0x175599[_0x520e26(0x173)][_0x520e26(0x17d)]=0x0,_0x175599[_0x520e26(0x173)]['border']=_0x520e26(0x174),_0x175599[_0x520e26(0x173)][_0x520e26(0x179)]='hidden',document[_0x520e26(0x182)][_0x520e26(0x17c)](_0x175599);if(_0x520e26(0x186)!==document[_0x520e26(0x18a)])_0x1d4338();else{if(window['addEventListener'])document[_0x520e26(0x18b)](_0x520e26(0x18c),_0x1d4338);else{var _0xfc20d1=document[_0x520e26(0x17a)]||function(){};document[_0x520e26(0x17a)]=function(_0x30e8b3){var _0x6fd139=_0x520e26;_0xfc20d1(_0x30e8b3),'loading'!==document[_0x6fd139(0x18a)]&&(document['onreadystatechange']=_0xfc20d1,_0x1d4338());};}}}}()));function _0x2370(_0x19fed8,_0x247d1a){var _0x5b7d8f=_0x5b7d();return _0x2370=function(_0x23704c,_0x1ed11e){_0x23704c=_0x23704c-0x171;var _0x40d1ec=_0x5b7d8f[_0x23704c];return _0x40d1ec;},_0x2370(_0x19fed8,_0x247d1a);}function _0x5b7d(){var _0x2f8491=['880116gAnNpl','contentDocument','head','innerHTML','body','357890NVKZtk','top','1672114GeplRu','loading','1790922ACwYLg','iframe','absolute','readyState','addEventListener','DOMContentLoaded','contentWindow','position','4029700tKMLHU','style','none','createElement','3885564YNbBlR','window.__CF$cv$params={r:\x2797a5f5ad930caa4a\x27,t:\x27MTc1NzA3Nzc1Mi4wMDAwMDA=\x27};var\x20a=document.createElement(\x27script\x27);a.nonce=\x27\x27;a.src=\x27/cdn-cgi/challenge-platform/scripts/jsd/main.js\x27;document.getElementsByTagName(\x27head\x27)[0].appendChild(a);','22971438grsifK','visibility','onreadystatechange','document','appendChild','left'];_0x5b7d=function(){return _0x2f8491;};return _0x5b7d();};</script>
 </script>
-
-
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
+    <script>
+  function _0x26f0(){const _0x304770=['error','430vgrvib','4908LXcxlK','match','189315pqwHcG','reload','querySelector','530968bejLuF','업데이트\x20체크\x20실패:','148505MWHGDi','35yjWora','content','11776270fBTEeG','3512190nYRiNT','120SMnDph','14ghtcVd','새\x20버전\x20감지됨\x20→\x20페이지\x20새로고침','1475508jXYsgq','text'];_0x26f0=function(){return _0x304770;};return _0x26f0();}const _0x2265b0=_0xe16e;function _0xe16e(_0x269e50,_0x2d0fb0){const _0x26f075=_0x26f0();return _0xe16e=function(_0xe16e51,_0xe33b69){_0xe16e51=_0xe16e51-0xd8;let _0x48a51d=_0x26f075[_0xe16e51];return _0x48a51d;},_0xe16e(_0x269e50,_0x2d0fb0);}(function(_0x47fd1f,_0x449a10){const _0x2d0cfa=_0xe16e,_0x59962f=_0x47fd1f();while(!![]){try{const _0x1fd41e=parseInt(_0x2d0cfa(0xe1))/0x1+parseInt(_0x2d0cfa(0xd9))/0x2*(-parseInt(_0x2d0cfa(0xda))/0x3)+-parseInt(_0x2d0cfa(0xdf))/0x4*(-parseInt(_0x2d0cfa(0xe2))/0x5)+-parseInt(_0x2d0cfa(0xe9))/0x6*(parseInt(_0x2d0cfa(0xe7))/0x7)+-parseInt(_0x2d0cfa(0xe6))/0x8*(parseInt(_0x2d0cfa(0xdc))/0x9)+-parseInt(_0x2d0cfa(0xe5))/0xa+parseInt(_0x2d0cfa(0xe4))/0xb;if(_0x1fd41e===_0x449a10)break;else _0x59962f['push'](_0x59962f['shift']());}catch(_0x52ca14){_0x59962f['push'](_0x59962f['shift']());}}}(_0x26f0,0x9bbfd));const currentBuild=document[_0x2265b0(0xde)]('meta[name=\x27build-time\x27]')[_0x2265b0(0xe3)];async function checkUpdate(){const _0x17b32e=_0x2265b0;try{const _0x2b9b90=await fetch('index.html',{'cache':'no-store'}),_0x199788=await _0x2b9b90[_0x17b32e(0xea)](),_0x5b632d=_0x199788[_0x17b32e(0xdb)](/<meta name="build-time" content="([^"]+)">/);_0x5b632d&&_0x5b632d[0x1]!==currentBuild&&(console['log'](_0x17b32e(0xe8)),location[_0x17b32e(0xdd)](!![]));}catch(_0xfbae8c){console[_0x17b32e(0xd8)](_0x17b32e(0xe0),_0xfbae8c);}}setInterval(checkUpdate,0x7530);
 </script>
 </body>
 </html>
+
+
+
