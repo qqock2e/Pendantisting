@@ -1199,7 +1199,7 @@ function resetVolumeShopButtons() {
 function updateInventoryDisplay() {
   const _0x2d32ea = document.getElementById("gemList");
   _0x2d32ea.innerHTML = '';
-  const _0x203ff9 = ['일반', '희귀', '에픽', '전설', '유니크', "스페셜", "이벤트"];
+  const _0x203ff9 = ['일반', '희귀', '에픽', '전설', '유니크', "스페셜", "이벤트", "리미티드"];
   const _0x266682 = Object.keys(inventory).sort((_0x1b4dfa, _0x2bf6f) => {
     const _0x2cf375 = getGemGrade(_0x1b4dfa);
     const _0x5c3a26 = getGemGrade(_0x2bf6f);
@@ -1410,7 +1410,7 @@ function performMultipleGacha() {
     const _0xcebf64 = performSingleGacha();
     currentGachaResults.push(_0xcebf64);
   }
-  const _0x5e05a6 = ['일반', '희귀', '에픽', '전설', "유니크", '스페셜', "이벤트"];
+  const _0x5e05a6 = ['일반', '희귀', '에픽', '전설', "유니크", '스페셜', "이벤트","리미티드"];
   let _0x51ac38 = '일반';
   let _0x4e9027 = 'grade-common';
   currentGachaResults.forEach(_0x598c53 => {
@@ -2006,5 +2006,6 @@ setInterval(() => {
 </script>
 </body>
 </html>
+
 
 
